@@ -282,6 +282,10 @@ public class DBConectDialog extends JDialog {
         return ret;
     }
 
+    public String getConnectionConfingName(){
+        return jTextField4.getText();
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;

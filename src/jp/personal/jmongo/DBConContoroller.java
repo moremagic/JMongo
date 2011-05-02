@@ -27,6 +27,7 @@ import java.util.Map;
  * @author mitsu
  */
 public class DBConContoroller {
+    private String m_confName = "";
     private MongoIFrame m_gui = null;
     private DBConnection m_dao = null;
     private DBActionManager m_act = null;
@@ -38,8 +39,9 @@ public class DBConContoroller {
      * @param host 接続ホスト
      * @param dbName DB名
      */
-    public DBConContoroller(int port, String host, String dbName){
+    public DBConContoroller(String confName, int port, String host, String dbName) throws UnknownHostException{
         m_dao = new DBConnection(port, host, dbName);
+        m_confName = confName;
     }
 
     /**
@@ -50,6 +52,7 @@ public class DBConContoroller {
     public MongoIFrame getGUI(){
         if(m_gui == null){
             m_gui = new MongoIFrame(this);
+            m_gui.setTitle(m_confName);
         }
         return m_gui;
     }
@@ -94,17 +97,32 @@ public class DBConContoroller {
     public String[] findString(String collection) throws UnknownHostException, MongoException{
         List<String> ret = new ArrayList<String>();
         for(Map m: m_dao.read(collection, new HashMap()).toArray(new Map[]{})){
-            ret.add( JSON.serialize(m) );
+            try{
+                ret.add( JSON.serialize(m) );
+            }catch(OutOfMemoryError err){
+                ret.add("{ \"_id\" : " + m.get("_id") + ", \"GUI_ERR\": \"" + err.getMessage() + "\" }");
+            }
         }
 
         return ret.toArray(new String[]{});
     }
 
 
-    public boolean update(String collection, String upobj, String data){
+    /**
+     * アップデートを行う
+     * @return 成功したらTrue
+     */
+    public boolean update(){
         try{
-            m_dao.update(collection, (Map)JSON.parse(upobj), (Map)JSON.parse(data));
-            return true;
+            String collection = m_gui.getCollectionName();
+            String newData = m_gui.getEditData();
+            String selectData = m_gui.getSelectedData();
+            if(selectData == null){
+                return insert(collection, newData);
+            }else{
+                m_dao.update(collection, (Map)JSON.parse(selectData), (Map)JSON.parse(newData));
+                return true;
+            }
         }catch(Exception err){
             err.printStackTrace();
             return false;
@@ -122,15 +140,30 @@ public class DBConContoroller {
         }
     }
 
-    public boolean delete(String collection, String data){
+    public boolean delete(){
         try{
-            m_dao.delete(collection, (Map)JSON.parse(data));
+            String collection = m_gui.getCollectionName();
+            String newData = m_gui.getEditData();
+            
+            m_dao.delete(collection, (Map)JSON.parse(newData));
             return true;
         }catch(Exception err){
             err.printStackTrace();
             return false;
         }
     }
+
+    public boolean drop(){
+        try{
+            String collection = m_gui.getCollectionName();
+            m_dao.drop(collection);
+            return true;
+        }catch(Exception err){
+            err.printStackTrace();
+            return false;
+        }
+    }
+
     /**
      * DBコントローラをクローズする
      *

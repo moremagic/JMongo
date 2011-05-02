@@ -12,12 +12,14 @@
 package gui;
 
 import com.mongodb.util.JSON;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -138,6 +140,15 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
      * 
      * @param collectionName
      */
+    private void showData(){
+        showData(getCollectionName());
+    }
+
+    /**
+     * 指定したコレクションのデータを表示する
+     *
+     * @param collectionName
+     */
     private void showData(String collectionName){
         try {
             clearList();
@@ -169,7 +180,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         DefaultMutableTreeNode root = (DefaultMutableTreeNode)m_treeModel2.getRoot();
         root.removeAllChildren();
 
-        root.add( (DefaultMutableTreeNode)createMongoDataTree(s) );
+        root.add( (DefaultMutableTreeNode)createMongoDataTree("root", s) );
         jTree2.updateUI();
         expandAll(jTree2);
     }
@@ -185,18 +196,21 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
 
 
     /**
-     * データtリーの作成
+     * データツリーの作成
      * 
      * @param s データ文字
      * @return
      */
-    public TreeNode createMongoDataTree(String s){
-        DefaultMutableTreeNode ret = new DefaultMutableTreeNode();
+    public TreeNode createMongoDataTree(String treeKey, String s){
+        DefaultMutableTreeNode ret = new DefaultMutableTreeNode(treeKey);
 
         Map map = (Map)JSON.parse(s);
-        for( String key : (String[])map.keySet().toArray(new String[]{}) ){
+        String[] keys = (String[])map.keySet().toArray(new String[]{});
+        Arrays.sort(keys);
+
+        for( String key : keys ){
             if(map.get(key) instanceof Map){
-                ret.add( (DefaultMutableTreeNode)createMongoDataTree(map.get(key).toString()) );
+                ret.add( (DefaultMutableTreeNode)createMongoDataTree(key, map.get(key).toString()) );
             }else{
                 DefaultMutableTreeNode collectionReef = new DefaultMutableTreeNode(key + ":" + map.get(key));
                 ret.add(collectionReef);
@@ -206,6 +220,35 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         return ret;
     }
 
+    /**
+     * 現在選択されているコレクション名を取得する
+     * @return コレクション名
+     */
+    public String getCollectionName(){
+        return jTree1.getSelectionPath().getPath()[jTree1.getSelectionCount()].toString();
+    }
+
+    /**
+     * ユーザが編集したデータを取得する
+     * @return
+     */
+    public String getEditData(){
+        return jTextArea1.getText();
+    }
+
+    /**
+     * 現在選択されているデータを取得する
+     * 選択されていない場合Null
+     * 
+     * @return
+     */
+    public String getSelectedData(){
+        try{
+            return ((List)m_tableModel.getDataVector().get(jTable1.getSelectedRow())).get(1).toString();
+        }catch(Exception err){
+            return null;
+        }
+    }
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -221,6 +264,8 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
+        jPanel7 = new javax.swing.JPanel();
+        jButton3 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jSplitPane2 = new javax.swing.JSplitPane();
         jPanel4 = new javax.swing.JPanel();
@@ -273,6 +318,16 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         jScrollPane2.setViewportView(jTree1);
 
         jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
+        jButton3.setText("Drop");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        jPanel7.add(jButton3);
+
+        jPanel2.add(jPanel7, java.awt.BorderLayout.SOUTH);
 
         jSplitPane1.setLeftComponent(jPanel2);
 
@@ -354,45 +409,41 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        String collection = null;
-        String newData = null;
-        String rowData = null;
+        if (m_con.update()) {
+            SwingUtilities.invokeLater(new Runnable() {
 
-        try{
-            collection = jTree1.getSelectionPath().getPath()[jTree1.getSelectionCount()].toString();
-            newData = jTextArea1.getText();
-            rowData = ((List)m_tableModel.getDataVector().get(jTable1.getSelectedRow())).get(1).toString();
-        }catch(Exception err){}
-
-        if(rowData != null){
-            if( m_con.update(collection, rowData, newData) ){
-                jTextArea1.setText("");
-                showData(collection);
-            }else{
-                JOptionPane.showMessageDialog(null, "書き込みに失敗しました",  "書き込み失敗しました", JOptionPane.ERROR_MESSAGE);
-            }
-        }else{
-            if( m_con.insert(collection, newData) ){
-                jTextArea1.setText("");
-                showData(collection);
-            }else{
-                JOptionPane.showMessageDialog(null, "書き込みに失敗しました",  "書き込み失敗しました", JOptionPane.ERROR_MESSAGE);
-            }
+                public void run() {
+                    jTextArea1.setText("");
+                }
+            });
+            showData();
+        } else {
+            JOptionPane.showMessageDialog(null, "書き込みに失敗しました", "書き込み失敗しました", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        String collection = jTree1.getSelectionPath().getPath()[jTree1.getSelectionCount()].toString();
-        String newData = jTextArea1.getText();
-
-        if( m_con.delete(collection, newData) ){
+        if( m_con.delete() ){
             jTextArea1.setText("");
-            showData(collection);
+            showData();
         }else{
             JOptionPane.showMessageDialog(null, "削除に失敗しました",  "削除失敗しました", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        // TODO add your handling code here:
+        if( m_con.drop() ){
+            jTextArea1.setText("");
+            showData();
+        }else{
+            JOptionPane.showMessageDialog(null, "削除に失敗しました",  "削除失敗しました", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+
 
     /**
     * @param args the command line arguments
@@ -410,12 +461,14 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;

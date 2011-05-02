@@ -27,6 +27,7 @@ public class OpenAction extends AbstractAction {
         DBConectDialog dialog = new DBConectDialog();
         dialog.setVisible(true);
 
+        String sConfigName = dialog.getConnectionConfingName();
         String sConfig = dialog.getConnectionConfing();
         dialog.dispose();
 
@@ -35,7 +36,7 @@ public class OpenAction extends AbstractAction {
             String port = sConfig.substring(sConfig.indexOf(":")+1, sConfig.indexOf("/"));
             String dbname = sConfig.substring(sConfig.indexOf("/")+1);
             try{
-                DBConContoroller con = new DBConContoroller(Integer.parseInt(port), host, dbname);
+                DBConContoroller con = new DBConContoroller(sConfigName, Integer.parseInt(port), host, dbname);
                 MainController.getInstance().showDBConect(con);
             }catch(Exception err){
                 err.printStackTrace();

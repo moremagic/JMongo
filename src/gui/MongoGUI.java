@@ -13,6 +13,9 @@ package gui;
 
 import action.ActionManager;
 import action.OpenAction;
+import java.beans.PropertyVetoException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JInternalFrame;
 
@@ -43,8 +46,11 @@ public class MongoGUI extends javax.swing.JFrame {
         iframe.setVisible(true);
         jDesktopPane1.add(iframe);
 
-        iframe.setLayer(count+1);
-        iframe.setLayer(1);
+        try {
+            iframe.setSelected(true);
+            iframe.setMaximum(true);
+        } catch (PropertyVetoException ex) {}
+        iframe.setLayer(0);
     }
 
 
