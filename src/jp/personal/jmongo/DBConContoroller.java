@@ -34,13 +34,17 @@ public class DBConContoroller {
 
     /**
      * コンストラクタ
-     *
-     * @param port 接続ポート番号
-     * @param host 接続ホスト
-     * @param dbName DB名
+     * 
+     * @param confName
+     * @param port
+     * @param host
+     * @param dbName
+     * @param dbuser
+     * @param dbpasswd
+     * @throws UnknownHostException 
      */
-    public DBConContoroller(String confName, int port, String host, String dbName) throws UnknownHostException{
-        m_dao = new DBConnection(port, host, dbName);
+    public DBConContoroller(String confName, String host, int port, String dbName, String dbuser, String dbpasswd) throws UnknownHostException{
+        m_dao = new DBConnection(host, port,dbName, dbuser, dbpasswd);
         m_confName = confName;
     }
 

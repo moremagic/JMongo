@@ -12,6 +12,7 @@
 package gui;
 
 import config.ConectionConfig;
+import config.DBConnectionBean;
 import javax.swing.DefaultListModel;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -22,7 +23,7 @@ import javax.swing.JOptionPane;
  */
 public class DBConectDialog extends JDialog {
     private ConectionConfig m_pro = null;
-    private String ret = "";
+    private DBConnectionBean ret = null;
 
     /** Creates new form DBConectDialog */
     public DBConectDialog() {
@@ -63,7 +64,7 @@ public class DBConectDialog extends JDialog {
         jPanel2 = new javax.swing.JPanel();
         jPanel9 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
+        jTextField00 = new javax.swing.JTextField();
         jPanel3 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
@@ -73,6 +74,12 @@ public class DBConectDialog extends JDialog {
         jPanel5 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jTextField3 = new javax.swing.JTextField();
+        jPanel12 = new javax.swing.JPanel();
+        jLabel5 = new javax.swing.JLabel();
+        jTextField4 = new javax.swing.JTextField();
+        jPanel13 = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        jTextField5 = new javax.swing.JTextField();
         jPanel8 = new javax.swing.JPanel();
         jPanel11 = new javax.swing.JPanel();
         jButton2 = new javax.swing.JButton();
@@ -113,7 +120,7 @@ public class DBConectDialog extends JDialog {
 
         jPanel6.setLayout(new java.awt.BorderLayout());
 
-        jPanel2.setLayout(new java.awt.GridLayout(4, 0, 10, 10));
+        jPanel2.setLayout(new java.awt.GridLayout(6, 0, 10, 10));
 
         jPanel9.setLayout(new java.awt.BorderLayout());
 
@@ -121,8 +128,8 @@ public class DBConectDialog extends JDialog {
         jLabel4.setPreferredSize(new java.awt.Dimension(80, 13));
         jPanel9.add(jLabel4, java.awt.BorderLayout.WEST);
 
-        jTextField4.setPreferredSize(new java.awt.Dimension(200, 19));
-        jPanel9.add(jTextField4, java.awt.BorderLayout.CENTER);
+        jTextField00.setPreferredSize(new java.awt.Dimension(200, 19));
+        jPanel9.add(jTextField00, java.awt.BorderLayout.CENTER);
 
         jPanel2.add(jPanel9);
 
@@ -158,6 +165,28 @@ public class DBConectDialog extends JDialog {
         jPanel5.add(jTextField3, java.awt.BorderLayout.CENTER);
 
         jPanel2.add(jPanel5);
+
+        jPanel12.setLayout(new java.awt.BorderLayout());
+
+        jLabel5.setText("DBユーザ");
+        jLabel5.setPreferredSize(new java.awt.Dimension(80, 13));
+        jPanel12.add(jLabel5, java.awt.BorderLayout.WEST);
+
+        jTextField4.setPreferredSize(new java.awt.Dimension(200, 19));
+        jPanel12.add(jTextField4, java.awt.BorderLayout.CENTER);
+
+        jPanel2.add(jPanel12);
+
+        jPanel13.setLayout(new java.awt.BorderLayout());
+
+        jLabel6.setText("DBパスワード");
+        jLabel6.setPreferredSize(new java.awt.Dimension(80, 13));
+        jPanel13.add(jLabel6, java.awt.BorderLayout.WEST);
+
+        jTextField5.setPreferredSize(new java.awt.Dimension(200, 19));
+        jPanel13.add(jTextField5, java.awt.BorderLayout.CENTER);
+
+        jPanel2.add(jPanel13);
 
         jPanel7.add(jPanel2);
 
@@ -209,13 +238,15 @@ public class DBConectDialog extends JDialog {
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-        String key = jTextField4.getText();
+        String key = jTextField00.getText();
         String host = jTextField1.getText();
         String port = jTextField2.getText();
         String dbname = jTextField3.getText();
+        String dbuser = jTextField4.getText();
+        String dbpasswd = jTextField5.getText();
 
         if(key.trim().length() > 0){
-            m_pro.setConfig(key, host, Integer.parseInt(port), dbname);
+            m_pro.setConfig(key, host, Integer.parseInt(port), dbname, dbuser, dbpasswd);
             createList();
         }else{
             JOptionPane.showMessageDialog(null, "設定がありません", "接続設定を入力してください", JOptionPane.INFORMATION_MESSAGE);
@@ -233,29 +264,27 @@ public class DBConectDialog extends JDialog {
 
         String key = (String)jList1.getSelectedValue();
         if(key != null){
-            String value = m_pro.getProperty(key);
-            jTextField4.setText(key);
-            jTextField1.setText(value.substring(0, value.indexOf(":")));
-            jTextField2.setText(value.substring(value.indexOf(":")+1, value.indexOf("/")));
-            jTextField3.setText(value.substring(value.indexOf("/")+1));
+            DBConnectionBean value = m_pro.getProperty(key);
+            jTextField00.setText(key);
+            jTextField1.setText(value.getM_host());
+            jTextField2.setText(Integer.toString(value.getM_port()));            
+            jTextField3.setText(value.getM_DBName());
+            jTextField4.setText(value.getM_DBUser());
+            jTextField5.setText(value.getM_DBPass());
         }
     }//GEN-LAST:event_jList1ValueChanged
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        String key = jTextField4.getText();
-        String host = jTextField1.getText();
-        String port = jTextField2.getText();
-        String dbname = jTextField3.getText();
-
+        //設定の更新
+        jButton1ActionPerformed(evt);
+        
+        String key = jTextField00.getText();        
         if(key != null && key.length() > 0){
-            m_pro.setConfig(key, host, Integer.parseInt(port), dbname);
             ret = m_pro.getProperty(key);
             this.setVisible(false);
         }else{
             JOptionPane.showMessageDialog(null, "設定が選択されていません", "接続設定を選択してください", JOptionPane.INFORMATION_MESSAGE);
         }
-
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jList1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jList1MouseClicked
@@ -278,12 +307,12 @@ public class DBConectDialog extends JDialog {
         });
     }
 
-    public String getConnectionConfing(){
+    public DBConnectionBean getConnectionConfing(){
         return ret;
     }
 
     public String getConnectionConfingName(){
-        return jTextField4.getText();
+        return jTextField00.getText();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -294,10 +323,14 @@ public class DBConectDialog extends JDialog {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JList jList1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel10;
     private javax.swing.JPanel jPanel11;
+    private javax.swing.JPanel jPanel12;
+    private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -307,10 +340,12 @@ public class DBConectDialog extends JDialog {
     private javax.swing.JPanel jPanel8;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextField jTextField00;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField4;
+    private javax.swing.JTextField jTextField5;
     // End of variables declaration//GEN-END:variables
 
 }

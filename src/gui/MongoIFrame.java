@@ -69,12 +69,11 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
                     TreePath path = e.getNewLeadSelectionPath();
                     final String nodeName = path.getLastPathComponent().toString();
 
-                    Runnable run = new Runnable(){
+                    new Thread(new Runnable(){
                         public void run(){
                             showData(nodeName);
                         }
-                    };
-                    java.awt.EventQueue.invokeLater(run);
+                    }).start();
 
                 }
             }
@@ -157,7 +156,11 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
                 m_tableModel.addRow(new Object[]{i + 1, datas[i]});
             }
 
-            createCollectionTree();
+            SwingUtilities.invokeLater(new Runnable(){
+                public void run(){
+                    createCollectionTree();
+                }
+            });
         } catch (Exception ex) {
             Logger.getLogger(MongoIFrame.class.getName()).log(Level.SEVERE, null, ex);
         }

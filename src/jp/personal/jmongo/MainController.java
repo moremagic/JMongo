@@ -73,7 +73,7 @@ public class MainController {
     }
 
 
-//*********************************************
+//*********************<<TEST>>************************
 
 
     public static void test() {
@@ -93,33 +93,6 @@ public class MainController {
 
             //コレクションに接続
             DBCollection coll = db.getCollection("testCollection");
-//            for(int i = 0 ; i < 10 ; i++){
-//                BasicDBObject doc = new BasicDBObject();
-//                doc.put("name", "MongoDB_" + i);
-//                doc.put("type", "database_" + i);
-//                doc.put("count", i);
-//
-//                BasicDBObject info = new BasicDBObject();
-//                info.put("x", 203 + i);
-//                info.put("y", 102 + i);
-//
-//                doc.put("info", info);
-//                coll.insert(doc);
-//            }
-
-//            BasicDBObject doc = new BasicDBObject();
-//            doc.put("name", "TEST_1");
-//            for(int i = 0 ; i < 10 ; i++){
-//                BasicDBObject info = new BasicDBObject();
-//                info.put("x", 203 + i);
-//                info.put("y", 102 + i);
-//
-//                doc.put("info_" + i, info);
-//            }
-//            coll.insert(doc);
-
-//            System.out.println(coll.find().next());
-//
             DBCursor cur = coll.find();
             while(cur.hasNext()) {
 
@@ -132,10 +105,6 @@ public class MainController {
                 }
             }
             System.out.println(coll.find().count());
-
-
-
-            //System.out.println(coll.find(new DBObject("name", "")).count());
         }
         catch (UnknownHostException ex) {
             Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
@@ -144,26 +113,6 @@ public class MainController {
         }
     }
 
-
-    public static void find() {
-        try{
-            Mongo m = new Mongo();
-            DB db = m.getDB( "mydb" );
-            DBCollection coll = db.getCollection("testCollection");
-            DBCursor cur = coll.find();
-
-
-            while(cur.hasNext()) {
-                DBObject obj = cur.next();
-                printDBObject((DBObject)obj);
-            }
-        }
-        catch (UnknownHostException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MongoException ex) {
-            Logger.getLogger(MainController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 
     private static void printDBObject(DBObject obj){
         printDBObject(obj, 0);

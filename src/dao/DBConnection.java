@@ -38,9 +38,16 @@ public class DBConnection {
 
 
 
-    public DBConnection(int port, String host, String db_name) throws UnknownHostException {
-        m_port = port;
+    public DBConnection(String host, int port, String db_name, String dbuser, String dbpasswd) throws UnknownHostException {
+        this(host, port, db_name);
+        if( !m_MongoDB.authenticate(dbuser, dbpasswd.toCharArray()) ){
+            throw new UnknownHostException(host + " ユーザ認証エラー");
+        }
+    }
+    
+    public DBConnection(String host, int port, String db_name) throws UnknownHostException {
         m_host = host;
+        m_port = port;
         m_dbName = db_name;
         //デフォルトポート
         if (m_port == -1) {

@@ -14,8 +14,6 @@ package gui;
 import action.ActionManager;
 import action.OpenAction;
 import java.beans.PropertyVetoException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.Action;
 import javax.swing.JInternalFrame;
 

@@ -45,10 +45,32 @@ public class ConectionConfig {
      * @param confName 設定名
      * @return 接続設定
      */
-    public String getProperty(String confName){
-        return m_properties.getProperty(confName);
+    public DBConnectionBean getProperty(String confName){
+        DBConnectionBean ret = null;
+        String value = m_properties.getProperty(confName);
+        
+        try{
+            String dbHost = value.substring(0, value.indexOf(":"));
+            String port = value.substring(value.indexOf(":")+1, value.indexOf("/"));
+            String dbName = value.substring(value.indexOf("/")+1, value.indexOf("@"));
+            String dbUser = value.substring(value.indexOf("@") + 1, value.indexOf("="));
+            String dbPasswd = value.substring(value.indexOf("=")+1);        
+            ret = new DBConnectionBean(confName, dbHost, Integer.parseInt(port), dbName, dbUser, dbPasswd);
+        }catch(Exception err){
+            err.printStackTrace();
+        }
+        return ret;
     }
 
+    /**
+     * 新しい設定を追加する
+     * 
+     * @param conf 
+     */
+    public void setConfig(DBConnectionBean conf){
+        setConfig(conf.getM_ConfName(), conf.getM_host(), conf.getM_port(), conf.getM_DBName(), conf.getM_DBUser(), conf.getM_DBPass());
+    }
+    
     /**
      * 新しい設定を追加する
      *
@@ -57,8 +79,8 @@ public class ConectionConfig {
      * @param port ポート番号
      * @param dbName DB名
      */
-    public void setConfig(String confName, String host, int port, String dbName){
-        m_properties.setProperty(confName, host + ":" + port + "/" + dbName);
+    public void setConfig(String confName, String host, int port, String dbName, String dbuser, String dbpasswd){
+        m_properties.setProperty(confName, host + ":" + port + "/" + dbName + "@" + dbuser + "=" + dbpasswd );
     }
 
     /**

@@ -5,6 +5,7 @@
 
 package action;
 
+import config.DBConnectionBean;
 import gui.DBConectDialog;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -28,15 +29,13 @@ public class OpenAction extends AbstractAction {
         dialog.setVisible(true);
 
         String sConfigName = dialog.getConnectionConfingName();
-        String sConfig = dialog.getConnectionConfing();
+        DBConnectionBean config = dialog.getConnectionConfing();
         dialog.dispose();
 
-        if(sConfig!= null && sConfig.length() > 0){
-            String host = sConfig.substring(0, sConfig.indexOf(":"));
-            String port = sConfig.substring(sConfig.indexOf(":")+1, sConfig.indexOf("/"));
-            String dbname = sConfig.substring(sConfig.indexOf("/")+1);
+        if(config!= null){
+            
             try{
-                DBConContoroller con = new DBConContoroller(sConfigName, Integer.parseInt(port), host, dbname);
+                DBConContoroller con = new DBConContoroller(sConfigName, config.getM_host(), config.getM_port(), config.getM_DBName(), config.getM_DBUser(), config.getM_DBPass());
                 MainController.getInstance().showDBConect(con);
             }catch(Exception err){
                 err.printStackTrace();
