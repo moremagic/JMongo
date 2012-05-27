@@ -12,6 +12,8 @@
 package gui;
 
 import com.mongodb.util.JSON;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +26,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import jp.personal.jmongo.DBConContoroller;
 
 /**
@@ -37,7 +37,6 @@ import jp.personal.jmongo.DBConContoroller;
  */
 public class MongoIFrame extends javax.swing.JInternalFrame {
     private DBConContoroller m_con = null;
-    private DefaultTableModel m_tableModel = null;
     private DefaultTreeModel m_treeModel = null;
     private DefaultTreeModel m_treeModel2 = null;
 
@@ -52,45 +51,41 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         jTree1.setModel(m_treeModel);
         createCollectionTree();
 
-        //表の初期化
-        m_tableModel = new DefaultTableModel(null, new String [] {"No", "data"});
-        jTable1.setModel(m_tableModel);
-        jTable1.getColumnModel().getColumn(1).setMinWidth(800);
-
-        jTable1.setDefaultEditor(Object.class, null);
-        jTable1.getTableHeader().setReorderingAllowed(false);
-
         /**
          * Tree選択位置が変わるときの動的読み込み
          */
         this.jTree1.addTreeSelectionListener(
             new TreeSelectionListener(){
                 public void valueChanged(TreeSelectionEvent e){
-                    TreePath path = e.getNewLeadSelectionPath();
-                    final String nodeName = path.getLastPathComponent().toString();
-
-                    new Thread(new Runnable(){
+                    SwingUtilities.invokeLater(new Runnable(){
                         public void run(){
+                            final String nodeName = jTree1.getLastSelectedPathComponent().toString();
                             showData(nodeName);
                         }
-                    }).start();
-
+                    });
                 }
             }
         );
 
+        collectionListView1.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                SwingUtilities.invokeLater(new Runnable(){
+                    public void run(){
+                        final String nodeName = jTree1.getLastSelectedPathComponent().toString();
+                        showData(nodeName);
+                    }
+                });
+            }
+        });
+        
         /**
          * テーブル選択位置が変わる時のイベント設定
          */
-        jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        collectionListView1.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 if(e.getValueIsAdjusting()) return;
 
-                String data = "";
-                if( jTable1.getSelectedRow() != -1 ){
-                    data = ((List)m_tableModel.getDataVector().get(jTable1.getSelectedRow())).get(1).toString();
-                    System.out.println( JSON.parse(data) );
-                }
+                String data = JSON.serialize( collectionListView1.getRowData(collectionListView1.getSelectedRow()) );
                 setMongoData(data);
             }
         });
@@ -99,7 +94,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
     /**
      * メインツリーパネルの初期化
      */
-    private void createCollectionTree() {
+    private synchronized void createCollectionTree() {
         try {
             DefaultMutableTreeNode root = (DefaultMutableTreeNode)m_treeModel.getRoot();
 
@@ -129,9 +124,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
      * リストをクリアします
      */
     private void clearList(){
-        while(m_tableModel.getRowCount() > 0){
-            m_tableModel.removeRow(0);
-        }
+        collectionListView1.clearList();
     }
 
     /**
@@ -148,14 +141,17 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
      *
      * @param collectionName
      */
-    private void showData(String collectionName){
+    private synchronized void showData(String collectionName){
         try {
+            //データのクリア
             clearList();
-            String[] datas = m_con.findString(collectionName);
-            for (int i = 0; i < datas.length; i++) {
-                m_tableModel.addRow(new Object[]{i + 1, datas[i]});
-            }
-
+            
+            //データ総件数の設定
+            long colSize = m_con.getCollectionDataCount(collectionName);
+            collectionListView1.setAllDataCount(colSize);            
+            List<Map<String, Object>> datas = m_con.findCollection(collectionName, (collectionListView1.getPages()-1) * collectionListView1.getCount(), collectionListView1.getCount());
+            collectionListView1.setListDatas(datas);
+            
             SwingUtilities.invokeLater(new Runnable(){
                 public void run(){
                     createCollectionTree();
@@ -208,7 +204,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         DefaultMutableTreeNode ret = new DefaultMutableTreeNode(treeKey);
 
         Map map = (Map)JSON.parse(s);
-        String[] keys = (String[])map.keySet().toArray(new String[]{});
+        String[] keys = (map == null)?new String[0]:(String[])map.keySet().toArray(new String[0]);
         Arrays.sort(keys);
 
         for( String key : keys ){
@@ -247,7 +243,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
      */
     public String getSelectedData(){
         try{
-            return ((List)m_tableModel.getDataVector().get(jTable1.getSelectedRow())).get(1).toString();
+            return JSON.serialize( collectionListView1.getRowData(collectionListView1.getSelectedRow()) );
         }catch(Exception err){
             return null;
         }
@@ -281,8 +277,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         jPanel6 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        collectionListView1 = new gui.CollectionListView();
 
         setClosable(true);
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -377,22 +372,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         jPanel4.add(jSplitPane3, java.awt.BorderLayout.CENTER);
 
         jSplitPane2.setBottomComponent(jPanel4);
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
-            },
-            new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
-            }
-        ));
-        jTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
-        jScrollPane1.setViewportView(jTable1);
-
-        jSplitPane2.setLeftComponent(jScrollPane1);
+        jSplitPane2.setLeftComponent(collectionListView1);
 
         jPanel3.add(jSplitPane2, java.awt.BorderLayout.CENTER);
 
@@ -414,7 +394,6 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         // TODO add your handling code here:
         if (m_con.update()) {
             SwingUtilities.invokeLater(new Runnable() {
-
                 public void run() {
                     jTextArea1.setText("");
                 }
@@ -462,6 +441,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private gui.CollectionListView collectionListView1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
@@ -472,14 +452,12 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JSplitPane jSplitPane2;
     private javax.swing.JSplitPane jSplitPane3;
-    private javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTree jTree1;
     private javax.swing.JTree jTree2;

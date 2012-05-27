@@ -11,7 +11,6 @@ import com.mongodb.util.JSON;
 import dao.DBConnection;
 import gui.MongoIFrame;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,14 +33,14 @@ public class DBConContoroller {
 
     /**
      * コンストラクタ
-     * 
+     *
      * @param confName
      * @param port
      * @param host
      * @param dbName
      * @param dbuser
      * @param dbpasswd
-     * @throws UnknownHostException 
+     * @throws UnknownHostException
      */
     public DBConContoroller(String confName, String host, int port, String dbName, String dbuser, String dbpasswd) throws UnknownHostException{
         m_dao = new DBConnection(host, port,dbName, dbuser, dbpasswd);
@@ -93,24 +92,24 @@ public class DBConContoroller {
     }
 
     /**
-     * データを全て取得する
+     * データを取得する
      *
      * @return コレクション名
      * @throws UnknownHostException
      */
-    public String[] findString(String collection) throws UnknownHostException, MongoException{
-        List<String> ret = new ArrayList<String>();
-        for(Map m: m_dao.read(collection, new HashMap()).toArray(new Map[]{})){
-            try{
-                ret.add( JSON.serialize(m) );
-            }catch(OutOfMemoryError err){
-                ret.add("{ \"_id\" : " + m.get("_id") + ", \"GUI_ERR\": \"" + err.getMessage() + "\" }");
-            }
-        }
-
-        return ret.toArray(new String[]{});
+    public List<Map<String, Object>> findCollection(String collection, int skip, int limit) throws UnknownHostException, MongoException{
+        return m_dao.selectRead(collection, null, null, skip, limit, null);
     }
-
+    
+    /**
+     * コレクションの全体サイズを取得する
+     * 
+     * @param collection
+     * @return 
+     */
+    public long getCollectionDataCount(String collection){
+        return m_dao.count(collection, null);
+    }
 
     /**
      * アップデートを行う
@@ -124,7 +123,11 @@ public class DBConContoroller {
             if(selectData == null){
                 return insert(collection, newData);
             }else{
-                m_dao.update(collection, (Map)JSON.parse(selectData), (Map)JSON.parse(newData));
+                Map<String, Object> find = new HashMap<String, Object>();
+                find.put("_id", ((Map)JSON.parse(selectData)).get("_id"));
+
+                Map<String, Object> update =  (Map)JSON.parse(newData);
+                m_dao.update(collection, find, update);
                 return true;
             }
         }catch(Exception err){
@@ -148,7 +151,7 @@ public class DBConContoroller {
         try{
             String collection = m_gui.getCollectionName();
             String newData = m_gui.getEditData();
-            
+
             m_dao.delete(collection, (Map)JSON.parse(newData));
             return true;
         }catch(Exception err){

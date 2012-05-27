@@ -4,24 +4,9 @@
  */
 package dao;
 
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import com.mongodb.MongoException;
-import com.mongodb.MongoOptions;
-import com.mongodb.ServerAddress;
-import com.mongodb.WriteResult;
+import com.mongodb.*;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import org.bson.types.ObjectId;
 
 /**
@@ -171,7 +156,17 @@ public class DBConnection {
      */
     public long count(String collection, Map upobj){
         DBCollection coll = m_MongoDB.getCollection(collection);
-        return coll.count( map2DBObject(upobj) );
+        return (upobj == null)?coll.count():coll.count(map2DBObject(upobj));
+    }
+    
+    /**
+     * count
+     * 
+     * @param collection
+     * @return 
+     */
+    public long count(String collection){
+        return count(collection, null);
     }
 
     /**
@@ -223,6 +218,97 @@ public class DBConnection {
         }
 
         return ret;
+    }
+
+    /**
+     * MongoDBでの特殊な検索をサポートするメソッド
+     * ※DBCursorの初期値を使用し、オーバーロードもとのメソッドに処理を委譲する
+     *   https://github.com/mongodb/mongo-java-driver/blob/master/src/main/com/mongodb/DBCursor.java
+     *
+     * @param collection
+     * @param data
+     * @return
+     * @throws MongoException
+     * @throws UnknownHostException
+     */
+    public List<Map<String, Object>> selectRead(String collection, Map fields, Map query) {
+        return selectRead(collection, fields, query, 0, 0, null);
+    }
+
+    /**
+     * select_read ソート版
+     *
+     * @param collection
+     * @param data
+     * @return
+     * @throws MongoException
+     * @throws UnknownHostException
+     */
+    public List<Map<String, Object>> selectRead(String collection, Map fields, Map query, Map sort) {
+        return selectRead(collection, fields, query, 0, 0, sort);
+    }
+
+    /**
+     * select_read_高機能版
+     *
+     * @param collection
+     * @param data
+     * @return
+     * @throws MongoException
+     * @throws UnknownHostException
+     */
+    public List<Map<String, Object>> selectRead(String collection, Map fields, Map query, int skip, int limit, Map sort) {
+        try {
+            if (query == null) {
+                query = new HashMap();
+            }
+            DBCollection coll = m_MongoDB.getCollection(collection);
+            List<Map<String, Object>> ret = new ArrayList<Map<String, Object>>();
+            //filedsとsortをBasicDBObjectに直接変換している理由はfieldsに_idなどの特殊カラムが指定された場合、
+            //map2DBObjcectの変換エラーが発生する為。また、filedsはvalueを変換する必要はない。
+            BasicDBObject boFileds = null;
+            BasicDBObject boSort = null;
+            if (fields != null) {
+                boFileds = new BasicDBObject(fields);
+            }
+            if (sort != null) {
+                boSort = new BasicDBObject(sort);
+                try{
+                    createIndex(coll, sort);
+                }catch(Exception e){
+                    //sort項目のインデクス作成時のException
+                    //e.printStackTrace();
+                }
+            }
+            DBCursor cur = coll.find(
+                    map2DBObject(query),
+                    (DBObject) boFileds).skip(skip)//Skip
+                    .limit(limit)//Limit
+                    .sort((DBObject) boSort); //Sort
+            for (DBObject buf : cur.toArray().toArray(new DBObject[]{})) {
+                ret.add(map4DBObject(buf));
+            }
+            return ret;
+        } catch (MongoException err) {
+            err.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * 与えられたMapのKeyに対しインデックスを作成します。
+     * @param coll
+     * @param mapIndexKey
+     */
+    private void createIndex(DBCollection coll, Map mapIndexKey) {
+        //Bugfix sort項目にはインデックスをはる。
+        BasicDBObject index = new BasicDBObject(mapIndexKey);
+        Set<Map.Entry<String, Object>> entrySet = index.entrySet();
+        for (Map.Entry<String, Object> ent : entrySet) {
+            //値の内容を１に統一する。
+            index.put(ent.getKey(), 1);
+        }
+        coll.ensureIndex(index);
     }
 
     /**
