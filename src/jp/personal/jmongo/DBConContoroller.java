@@ -10,7 +10,9 @@ import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 import dao.DBConnection;
 import gui.MongoIFrame;
+import java.io.*;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -171,6 +173,52 @@ public class DBConContoroller {
         }
     }
 
+    public boolean dump(File f){
+        try{
+            BufferedWriter bw = null;
+            String collection = m_gui.getCollectionName();
+            try{
+                bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
+            
+                List<Map<String, Object>> list = m_dao.read(collection, null);
+                for(Map m : list){
+                    bw.write(JSON.serialize(m) + "\r\n");
+                }
+            }finally{
+                if(bw != null)bw.close();
+            }
+            
+            return true;
+        }catch(Exception err){
+            err.printStackTrace();
+            return false;
+        }
+    }    
+    
+    public boolean load(File f){
+        try{
+            BufferedReader br = null;
+            String collection = m_gui.getCollectionName();
+            try{
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"));
+            
+                String line = "";
+                while((line = br.readLine()) != null){
+                    Map<String, Object> m = (Map<String, Object>)JSON.parse(line);
+                    m_dao.insert(collection, m);
+                }
+            }finally{
+                if(br != null)br.close();
+            }
+            
+            return true;
+        }catch(Exception err){
+            err.printStackTrace();
+            return false;
+        }
+    }    
+    
+    
     /**
      * DBコントローラをクローズする
      *

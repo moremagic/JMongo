@@ -442,7 +442,7 @@ public class CollectionListView extends javax.swing.JPanel {
         });
         jPanel2.add(jButton4);
 
-        jLabel5.setText("検索結果(件)：");
+        jLabel5.setText("Datasize：");
         jPanel2.add(jLabel5);
         jPanel2.add(jLabel4);
 

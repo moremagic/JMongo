@@ -117,7 +117,7 @@
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel5">
               <Properties>
-                <Property name="text" type="java.lang.String" value="&#x691c;&#x7d22;&#x7d50;&#x679c;(&#x4ef6;)&#xff1a;"/>
+                <Property name="text" type="java.lang.String" value="Datasize&#xff1a;"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel4">

@@ -88,6 +88,22 @@
 
                   <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>
                   <SubComponents>
+                    <Component class="javax.swing.JButton" name="jButton5">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="import"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton5ActionPerformed"/>
+                      </Events>
+                    </Component>
+                    <Component class="javax.swing.JButton" name="jButton4">
+                      <Properties>
+                        <Property name="text" type="java.lang.String" value="dump"/>
+                      </Properties>
+                      <Events>
+                        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton4ActionPerformed"/>
+                      </Events>
+                    </Component>
                     <Component class="javax.swing.JButton" name="jButton3">
                       <Properties>
                         <Property name="text" type="java.lang.String" value="Drop"/>
@@ -199,7 +215,7 @@
                                   <SubComponents>
                                     <Component class="javax.swing.JButton" name="jButton1">
                                       <Properties>
-                                        <Property name="text" type="java.lang.String" value="&#x66f8;&#x304d;&#x8fbc;&#x307f;"/>
+                                        <Property name="text" type="java.lang.String" value="update"/>
                                       </Properties>
                                       <Events>
                                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
@@ -207,7 +223,7 @@
                                     </Component>
                                     <Component class="javax.swing.JButton" name="jButton2">
                                       <Properties>
-                                        <Property name="label" type="java.lang.String" value="&#x524a;&#x9664;"/>
+                                        <Property name="text" type="java.lang.String" value="delete"/>
                                       </Properties>
                                       <Events>
                                         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>

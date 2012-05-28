@@ -14,11 +14,13 @@ package gui;
 import com.mongodb.util.JSON;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -264,6 +266,8 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
         jPanel7 = new javax.swing.JPanel();
+        jButton5 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jSplitPane2 = new javax.swing.JSplitPane();
@@ -317,6 +321,22 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
 
         jPanel2.add(jScrollPane2, java.awt.BorderLayout.CENTER);
 
+        jButton5.setText("import");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
+        jPanel7.add(jButton5);
+
+        jButton4.setText("dump");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+        jPanel7.add(jButton4);
+
         jButton3.setText("Drop");
         jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -349,7 +369,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
 
         jPanel5.add(jScrollPane3, java.awt.BorderLayout.CENTER);
 
-        jButton1.setText("書き込み");
+        jButton1.setText("update");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
@@ -357,7 +377,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
         });
         jPanel6.add(jButton1);
 
-        jButton2.setLabel("削除");
+        jButton2.setText("delete");
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -420,10 +440,42 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
             jTextArea1.setText("");
             showData();
         }else{
-            JOptionPane.showMessageDialog(null, "削除に失敗しました",  "削除失敗しました", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "削除に失敗しました",  "削除失敗しました", JOptionPane.ERROR_MESSAGE);
         }
 
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        JFileChooser filechooser = new JFileChooser();
+
+        int selected = filechooser.showOpenDialog(this);
+        if (selected == JFileChooser.APPROVE_OPTION){
+            File file = filechooser.getSelectedFile();
+            if(m_con.dump(file)){
+                JOptionPane.showMessageDialog(this, "保存に成功しました",  "保存に成功しました", JOptionPane.INFORMATION_MESSAGE);
+                jTextArea1.setText("");
+                showData();
+            }else{
+                JOptionPane.showMessageDialog(this, "保存に失敗しました",  "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+        JFileChooser filechooser = new JFileChooser();
+
+        int selected = filechooser.showOpenDialog(this);
+        if (selected == JFileChooser.APPROVE_OPTION){
+            File file = filechooser.getSelectedFile();
+            if(m_con.load(file)){
+                JOptionPane.showMessageDialog(this, "取り込みに成功しました",  "取り込みに成功しました", JOptionPane.INFORMATION_MESSAGE);
+                jTextArea1.setText("");
+                showData();
+            }else{
+                JOptionPane.showMessageDialog(this, "取り込みに失敗しました",  "取り込みに失敗しました", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_jButton5ActionPerformed
 
 
 
@@ -445,6 +497,8 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
