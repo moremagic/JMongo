@@ -2,4 +2,5 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>mongoDB Connection Config</comment>
+<entry key="local">localhost:27017/test@=</entry>
 </properties>

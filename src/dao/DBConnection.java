@@ -25,7 +25,7 @@ public class DBConnection {
 
     public DBConnection(String host, int port, String db_name, String dbuser, String dbpasswd) throws UnknownHostException {
         this(host, port, db_name);
-        if( !m_MongoDB.authenticate(dbuser, dbpasswd.toCharArray()) ){
+        if( dbuser != null && dbuser.length() > 0 && !m_MongoDB.authenticate(dbuser, dbpasswd.toCharArray()) ){
             throw new UnknownHostException(host + " ユーザ認証エラー");
         }
     }
