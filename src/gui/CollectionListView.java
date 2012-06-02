@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
@@ -86,23 +87,12 @@ public class CollectionListView extends javax.swing.JPanel {
     }
 
     /**
-     * ヘッダを設定します
-     *
-     * @param columnKey 物理名
-     */
-    public void setHeader(String[] columnKey) {
-        m_columnKey = java.util.Arrays.asList(columnKey);
-        jTable1.setModel(new _DataModel(new Object[0][0], m_columnKey.toArray(new String[0])));
-    }
-
-    /**
      * ヘッダを取得します
      *
-     * {columnName[] 論理名, columnKey[] 物理名}
      */
-    public String[][] getHeader() {
+    public String[] getHeader() {
         _DataModel model = (_DataModel) jTable1.getModel();
-        return new String[][]{model.getColumnName(), model.getColumnKey()};
+        return model.m_columnKey;
     }
 
     /**
@@ -165,6 +155,24 @@ public class CollectionListView extends javax.swing.JPanel {
     }
     
     /**
+     * 検索を行うキーを返却する
+     * 
+     * @return 検索対象キー
+     */
+    public String getFindKey(){
+        return jComboBox1.getSelectedItem().toString();
+    }
+    
+    /**
+     * 検索文字列を返却する
+     * 
+     * @return 検索キーワード
+     */
+    public String getFindValue(){
+        return jTextField1.getText();
+    }
+    
+    /**
      * 総ページ数を設定する
      * 
      * @param count 
@@ -206,7 +214,11 @@ public class CollectionListView extends javax.swing.JPanel {
                 }
             }
         }
+        
+        //TableHeaderの設定
         jTable1.setModel(new _DataModel(new Object[0][0], m_columnKey.toArray(new String[0])));
+        //検索キーの設定
+        jComboBox1.setModel(new DefaultComboBoxModel(m_columnKey.toArray()));
         
         //データの設定
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -342,6 +354,13 @@ public class CollectionListView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel9 = new javax.swing.JPanel();
+        jPanel10 = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        jComboBox1 = new javax.swing.JComboBox();
+        jPanel11 = new javax.swing.JPanel();
+        jTextField1 = new javax.swing.JTextField();
+        jButton6 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jPanel1 = new javax.swing.JPanel();
@@ -359,6 +378,35 @@ public class CollectionListView extends javax.swing.JPanel {
         jSpinner3 = new javax.swing.JSpinner();
 
         setLayout(new java.awt.BorderLayout());
+
+        jPanel9.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel10.setLayout(new javax.swing.BoxLayout(jPanel10, javax.swing.BoxLayout.LINE_AXIS));
+
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("key :");
+        jLabel7.setPreferredSize(new java.awt.Dimension(80, 13));
+        jPanel10.add(jLabel7);
+        jPanel10.add(jComboBox1);
+
+        jPanel9.add(jPanel10);
+
+        jPanel11.setLayout(new javax.swing.BoxLayout(jPanel11, javax.swing.BoxLayout.LINE_AXIS));
+
+        jTextField1.setColumns(20);
+        jPanel11.add(jTextField1);
+
+        jButton6.setText("Find");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
+        jPanel11.add(jButton6);
+
+        jPanel9.add(jPanel11);
+
+        add(jPanel9, java.awt.BorderLayout.NORTH);
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -457,7 +505,7 @@ public class CollectionListView extends javax.swing.JPanel {
 
         jPanel1.add(jPanel2);
 
-        add(jPanel1, java.awt.BorderLayout.NORTH);
+        add(jPanel1, java.awt.BorderLayout.SOUTH);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -483,22 +531,34 @@ public class CollectionListView extends javax.swing.JPanel {
         jSpinner1.setValue(Integer.parseInt(jLabel2.getText()));
         fireActionListener(evt);
     }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        fireActionListener(evt);
+    }//GEN-LAST:event_jButton6ActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton6;
+    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel11;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSpinner jSpinner1;
     private javax.swing.JSpinner jSpinner3;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField1;
     // End of variables declaration//GEN-END:variables
 
     class _DataModel extends DefaultTableModel {
@@ -526,19 +586,6 @@ public class CollectionListView extends javax.swing.JPanel {
         }
 
         /**
-         * カラム論理名を返却します
-         *
-         * @return
-         */
-        public String[] getColumnName() {
-            String[] ret = new String[super.getColumnCount()];
-            for (int i = 0; i < ret.length; i++) {
-                ret[i] = super.getColumnName(i);
-            }
-            return ret;
-        }
-
-        /**
          * 指定された行のデータを取得する
          *
          * @param row 指定行
@@ -546,7 +593,7 @@ public class CollectionListView extends javax.swing.JPanel {
          */
         public Map<String, Object> getRowData(int row) {
             Map<String, Object> ret = new HashMap<String, Object>();
-            if (getRowCount() > row) {
+            if (row != -1 && getRowCount() > row) {
                 for (int i = 0; i < m_columnKey.length; i++) {
                     ret.put(m_columnKey[i], getValueAt(row, i));
                 }

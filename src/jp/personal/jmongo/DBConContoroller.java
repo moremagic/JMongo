@@ -99,8 +99,8 @@ public class DBConContoroller {
      * @return コレクション名
      * @throws UnknownHostException
      */
-    public List<Map<String, Object>> findCollection(String collection, int skip, int limit) throws UnknownHostException, MongoException{
-        return m_dao.selectRead(collection, null, null, skip, limit, null);
+    public List<Map<String, Object>> findCollection(String collection, Map query, int skip, int limit) throws UnknownHostException, MongoException{
+        return m_dao.selectRead(collection, null, query, skip, limit, null);
     }
     
     /**

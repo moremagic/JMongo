@@ -16,10 +16,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
@@ -150,8 +152,15 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
             
             //データ総件数の設定
             long colSize = m_con.getCollectionDataCount(collectionName);
-            collectionListView1.setAllDataCount(colSize);            
-            List<Map<String, Object>> datas = m_con.findCollection(collectionName, (collectionListView1.getPages()-1) * collectionListView1.getCount(), collectionListView1.getCount());
+            collectionListView1.setAllDataCount(colSize);  
+            
+            //検索条件の設定
+            Map<String, Object> query = new HashMap<String, Object>();
+            if(collectionListView1.getFindValue().length() > 0){
+                query.put(collectionListView1.getFindKey(), Pattern.compile(collectionListView1.getFindValue() + ".*"));
+            }
+            
+            List<Map<String, Object>> datas = m_con.findCollection(collectionName, query, (collectionListView1.getPages()-1) * collectionListView1.getCount(), collectionListView1.getCount());
             collectionListView1.setListDatas(datas);
             
             SwingUtilities.invokeLater(new Runnable(){
