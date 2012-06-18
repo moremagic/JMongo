@@ -304,6 +304,22 @@ public class DBConnection {
     
     
     //***********<<　GridFS　>>*************
+    
+    /**
+     * バケットリストを返却する
+     * 
+     * @return 
+     */
+    public String[] getBucketList(){
+        List<String> ret = new ArrayList<String>();
+        for(String col : m_MongoDB.getCollectionNames()){
+            if(col.endsWith(".chunks")){
+                ret.add(col.substring(0, col.indexOf(".chunks")));
+            }
+        }
+        
+        return ret.toArray(new String[]{});
+    }
 
     /**
      * ファイルリストを取得する
@@ -311,31 +327,28 @@ public class DBConnection {
      * @param backet
      * @return DB格納状態のファイルドキュメント。JSON形式
      */
-    public String[] listFile(String backet){
+    public String[] listFile(String bucket){
         List<String> ret = new ArrayList<String>();
         
-        GridFS gfs = new GridFS(m_MongoDB, backet);
+        GridFS gfs = new GridFS(m_MongoDB, bucket);        
 	DBCursor cursor = gfs.getFileList();
 	while (cursor.hasNext()) {
             ret.add(cursor.next().toString());
 	}
-        
         return ret.toArray(new String[0]);
     }
     
     /**
      * 指定したバケットにファイルをセーブします
      * 
-     * @param backet
+     * @param bucket
      * @param f
      * @return 
      */
-    public boolean saveFile(String backet, File f){
+    public boolean saveFile(String bucket, File f){
         boolean ret = false;
         
-        GridFS gfs = new GridFS(m_MongoDB, backet);
-        
-        
+        GridFS gfs = new GridFS(m_MongoDB, bucket);
         GridFSDBFile gFile = gfs.findOne(f.getName());
         if(gFile == null){
             GridFSInputFile gfsin = null;
@@ -354,12 +367,12 @@ public class DBConnection {
     /**
      * 指定したバケットに存在するファイルを読み込みます
      * 
-     * @param backet
+     * @param bucket
      * @param fileName
      * @return 
      */
-    public InputStream readFile(String backet, String fileName){
-        GridFS gfs = new GridFS(m_MongoDB, backet);
+    public InputStream readFile(String bucket, String fileName){
+        GridFS gfs = new GridFS(m_MongoDB, bucket);
         GridFSDBFile gFile = gfs.findOne(fileName);
         return gFile.getInputStream();                
     }
@@ -367,12 +380,12 @@ public class DBConnection {
     /**
      * 指定したバケットのファイルを削除します
      * 
-     * @param backet
+     * @param bucket
      * @param fileName
      * @return 
      */
-    public void deleteFile(String backet, String fileName){
-        GridFS gfs = new GridFS(m_MongoDB, backet);
+    public void deleteFile(String bucket, String fileName){
+        GridFS gfs = new GridFS(m_MongoDB, bucket);
         gfs.remove(fileName);
     }
     
@@ -381,20 +394,26 @@ public class DBConnection {
         
         try {
             DBConnection con = new DBConnection("localhost", -1, "unko");
-            String backetName = "aaphoto";
+            String bucketName = "photooo";
             String imgPath = "C:\\Users\\user\\Desktop\\img_457868_25319115_3.jpg";
             File f = new File(imgPath);
             
-            for(String s :con.listFile(backetName)){
+            for(String s :con.listFile(bucketName)){
                 System.out.println(">  " + s);
             }
             
-          //  con.saveFile(backetName, new File(imgPath));
+            for(String ccc: con.getBucketList()){
+                System.out.println("c>  " + ccc);
+            }
             
-            con.deleteFile(backetName, new File(imgPath).getName());
+            
+            
+            con.saveFile(bucketName, new File(imgPath));
+            
+            //con.deleteFile(bucketName, new File(imgPath).getName());
 //            
 //            {//ファイル出力
-//                InputStream in = new BufferedInputStream( con.readFile(backetName, f.getName()) );
+//                InputStream in = new BufferedInputStream( con.readFile(bucketName, f.getName()) );
 //                OutputStream out = new BufferedOutputStream( new FileOutputStream(new File(f.getParent(), "test.jpeg")) );
 //                int cnt = 0;
 //                byte[] buf = new byte[1024];
@@ -406,7 +425,7 @@ public class DBConnection {
 //                out.close();
 //            }
             
-            for(String s :con.listFile(backetName)){
+            for(String s :con.listFile(bucketName)){
                 System.out.println(">> " + s);
             }
             
