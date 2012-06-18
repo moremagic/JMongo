@@ -5,8 +5,14 @@
 package dao;
 
 import com.mongodb.*;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.gridfs.GridFSInputFile;
+import java.io.*;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.bson.types.ObjectId;
 
 /**
@@ -293,6 +299,121 @@ public class DBConnection {
             err.printStackTrace();
             return null;
         }
+    }
+    
+    
+    
+    //***********<<　GridFS　>>*************
+
+    /**
+     * ファイルリストを取得する
+     * 
+     * @param backet
+     * @return DB格納状態のファイルドキュメント。JSON形式
+     */
+    public String[] listFile(String backet){
+        List<String> ret = new ArrayList<String>();
+        
+        GridFS gfs = new GridFS(m_MongoDB, backet);
+	DBCursor cursor = gfs.getFileList();
+	while (cursor.hasNext()) {
+            ret.add(cursor.next().toString());
+	}
+        
+        return ret.toArray(new String[0]);
+    }
+    
+    /**
+     * 指定したバケットにファイルをセーブします
+     * 
+     * @param backet
+     * @param f
+     * @return 
+     */
+    public boolean saveFile(String backet, File f){
+        boolean ret = false;
+        
+        GridFS gfs = new GridFS(m_MongoDB, backet);
+        
+        
+        GridFSDBFile gFile = gfs.findOne(f.getName());
+        if(gFile == null){
+            GridFSInputFile gfsin = null;
+            try {
+                gfsin = gfs.createFile(f);
+                gfsin.save();
+                ret = true;
+            } catch (IOException ex) {
+                Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+            }        
+        }
+        
+        return ret;
+    }
+    
+    /**
+     * 指定したバケットに存在するファイルを読み込みます
+     * 
+     * @param backet
+     * @param fileName
+     * @return 
+     */
+    public InputStream readFile(String backet, String fileName){
+        GridFS gfs = new GridFS(m_MongoDB, backet);
+        GridFSDBFile gFile = gfs.findOne(fileName);
+        return gFile.getInputStream();                
+    }
+    
+    /**
+     * 指定したバケットのファイルを削除します
+     * 
+     * @param backet
+     * @param fileName
+     * @return 
+     */
+    public void deleteFile(String backet, String fileName){
+        GridFS gfs = new GridFS(m_MongoDB, backet);
+        gfs.remove(fileName);
+    }
+    
+    public static void main(String[] argv){
+        System.out.println("ok");
+        
+        try {
+            DBConnection con = new DBConnection("localhost", -1, "unko");
+            String backetName = "aaphoto";
+            String imgPath = "C:\\Users\\user\\Desktop\\img_457868_25319115_3.jpg";
+            File f = new File(imgPath);
+            
+            for(String s :con.listFile(backetName)){
+                System.out.println(">  " + s);
+            }
+            
+          //  con.saveFile(backetName, new File(imgPath));
+            
+            con.deleteFile(backetName, new File(imgPath).getName());
+//            
+//            {//ファイル出力
+//                InputStream in = new BufferedInputStream( con.readFile(backetName, f.getName()) );
+//                OutputStream out = new BufferedOutputStream( new FileOutputStream(new File(f.getParent(), "test.jpeg")) );
+//                int cnt = 0;
+//                byte[] buf = new byte[1024];
+//                while((cnt = in.read(buf, 0, buf.length)) != -1){
+//                    out.write(buf, 0, cnt);
+//                }
+//                
+//                in.close();
+//                out.close();
+//            }
+            
+            for(String s :con.listFile(backetName)){
+                System.out.println(">> " + s);
+            }
+            
+        } catch (Exception ex) {
+            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
     
     /**

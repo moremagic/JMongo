@@ -9,10 +9,10 @@ import action.DBActionManager;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 import dao.DBConnection;
+import gui.GridFsFrame;
 import gui.MongoIFrame;
 import java.io.*;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +29,8 @@ import java.util.Map;
  */
 public class DBConContoroller {
     private String m_confName = "";
-    private MongoIFrame m_gui = null;
+    private MongoIFrame m_gui = null;//コレクション表示フレーム
+    private GridFsFrame m_gui_fs = null;//GridFS表示フレーム
     private DBConnection m_dao = null;
     private DBActionManager m_act = null;
 
@@ -162,6 +163,11 @@ public class DBConContoroller {
         }
     }
 
+    /**
+     * 指定されたコレクションをドロップします
+     * 
+     * @return 
+     */
     public boolean drop(){
         try{
             String collection = m_gui.getCollectionName();
@@ -173,6 +179,12 @@ public class DBConContoroller {
         }
     }
 
+    /**
+     * DBデータをファイルへダンプします
+     * 
+     * @param f
+     * @return 
+     */
     public boolean dump(File f){
         try{
             BufferedWriter bw = null;
@@ -195,6 +207,12 @@ public class DBConContoroller {
         }
     }    
     
+    /**
+     * 指定したファイルからDBへデータをロードします
+     * 
+     * @param f
+     * @return 
+     */
     public boolean load(File f){
         try{
             BufferedReader br = null;

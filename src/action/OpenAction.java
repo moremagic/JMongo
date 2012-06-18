@@ -23,7 +23,7 @@ public class OpenAction extends AbstractAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        System.out.println("OpenAction call!!");
+        System.out.println("DBOpenAction call!!");
 
         DBConectDialog dialog = new DBConectDialog();
         dialog.setVisible(true);
