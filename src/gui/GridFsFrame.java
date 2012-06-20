@@ -4,20 +4,73 @@
  */
 package gui;
 
+import com.mongodb.util.JSON;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import jp.personal.jmongo.DBConContoroller;
 
 /**
  * GridFS データ表示用フレーム
- * 
+ *
  * @author itou
  */
-public class GridFsFrame extends javax.swing.JFrame {
+public class GridFsFrame extends javax.swing.JInternalFrame {
+
+    private DBConContoroller m_con = null;
+    private DefaultTreeModel m_treeModel = null;
 
     /**
      * Creates new form GridFsFrame
      */
     public GridFsFrame(DBConContoroller con) {
         initComponents();
+        m_con = con;
+
+        //ツリーパネルの初期化
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(m_con.getDBName() + " bucket");
+        m_treeModel = new DefaultTreeModel(root);
+        jTree1.setModel(m_treeModel);
+        createBucketCollectionTree();
+
+        /**
+         * Tree選択位置が変わるときの動的読み込み
+         */
+        jTree1.addTreeSelectionListener(
+                new TreeSelectionListener() {
+
+                    public void valueChanged(TreeSelectionEvent e) {
+                        SwingUtilities.invokeLater(new Runnable() {
+
+                            public void run() {
+                                final String nodeName = jTree1.getLastSelectedPathComponent().toString();
+                                if (!nodeName.equals(m_treeModel.getRoot().toString())) {
+                                    showData(nodeName);
+                                }
+                            }
+                        });
+                    }
+                });
+    }
+
+    /**
+     * 現在選択されているコレクション名を取得する
+     *
+     * @return コレクション名
+     */
+    public String getBucketCollectionName() {
+        return jTree1.getLastSelectedPathComponent().toString();
     }
 
     /**
@@ -30,39 +83,183 @@ public class GridFsFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jSplitPane1 = new javax.swing.JSplitPane();
+        jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
+        jPanel3 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        jTable1 = new javax.swing.JTable();
+        jPanel9 = new javax.swing.JPanel();
+        jPanel10 = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        jPanel11 = new javax.swing.JPanel();
+        jTextField1 = new javax.swing.JTextField();
+        jButton6 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
+        jPanel4 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setClosable(true);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setIconifiable(true);
+        setMaximizable(true);
+        setResizable(true);
+        setTitle("GridFS_Viewer");
+
+        jPanel2.setLayout(new java.awt.BorderLayout());
 
         jScrollPane1.setViewportView(jTree1);
 
-        jSplitPane1.setLeftComponent(jScrollPane1);
+        jPanel2.add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
-        jTextPane1.setText("(no data)");
-        jScrollPane2.setViewportView(jTextPane1);
+        jSplitPane1.setLeftComponent(jPanel2);
 
-        jSplitPane1.setRightComponent(jScrollPane2);
+        jPanel3.setLayout(new java.awt.BorderLayout());
+
+        jTable1.setAutoCreateRowSorter(true);
+        jTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        jScrollPane2.setViewportView(jTable1);
+
+        jPanel3.add(jScrollPane2, java.awt.BorderLayout.CENTER);
+
+        jPanel9.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+
+        jPanel10.setLayout(new javax.swing.BoxLayout(jPanel10, javax.swing.BoxLayout.LINE_AXIS));
+
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("filename :");
+        jLabel7.setPreferredSize(new java.awt.Dimension(80, 13));
+        jPanel10.add(jLabel7);
+
+        jPanel9.add(jPanel10);
+
+        jPanel11.setLayout(new javax.swing.BoxLayout(jPanel11, javax.swing.BoxLayout.LINE_AXIS));
+
+        jTextField1.setColumns(20);
+        jPanel11.add(jTextField1);
+
+        jButton6.setText("Find");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
+        jPanel11.add(jButton6);
+
+        jPanel9.add(jPanel11);
+
+        jPanel3.add(jPanel9, java.awt.BorderLayout.NORTH);
+
+        jSplitPane1.setRightComponent(jPanel3);
 
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
 
-        jButton1.setText("追加");
-        jPanel1.add(jButton1);
+        jButton1.setText("add");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+        jPanel4.add(jButton1);
 
-        jButton2.setText("削除");
-        jPanel1.add(jButton2);
+        jButton2.setText("delete");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+        jPanel4.add(jButton2);
+
+        jPanel1.add(jPanel4);
+
+        jButton3.setText("down load");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton3);
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        final String nodeName = jTree1.getLastSelectedPathComponent().toString();
+        if (!nodeName.equals(m_treeModel.getRoot().toString())) {
+            showData(nodeName);
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        String bucketName = jTree1.getLastSelectedPathComponent().toString();
+        if (bucketName.equals(m_treeModel.getRoot().toString())) {
+            return;
+        }
+
+        JFileChooser filechooser = new JFileChooser();
+        int selected = filechooser.showOpenDialog(this);
+        if (selected == JFileChooser.APPROVE_OPTION) {
+            File f = filechooser.getSelectedFile();
+            if (m_con.saveFile(bucketName, f)) {
+                JOptionPane.showMessageDialog(this, "保存に成功しました", "保存に成功しました", JOptionPane.INFORMATION_MESSAGE);
+                showData();
+            } else {
+                JOptionPane.showMessageDialog(this, "保存に失敗しました", "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        String bucketName = jTree1.getLastSelectedPathComponent().toString();
+        if (bucketName.equals(m_treeModel.getRoot().toString())) {
+            return;
+        }
+
+        String fileName = "";
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            if ("filename".equals(model.getColumnName(i))) {
+                fileName = model.getValueAt(jTable1.getSelectedRow(), i).toString();
+                break;
+            }
+        }
+        m_con.deleteFile(bucketName, fileName);
+        showData();
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        String bucketName = jTree1.getLastSelectedPathComponent().toString();
+        if (bucketName.equals(m_treeModel.getRoot().toString())) {
+            return;
+        }
+        
+        String fileName = "";
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for (int i = 0; i < model.getColumnCount(); i++) {
+            if ("filename".equals(model.getColumnName(i))) {
+                fileName = model.getValueAt(jTable1.getSelectedRow(), i).toString();
+                break;
+            }
+        }
+        
+        JFileChooser filechooser = new JFileChooser();
+        int selected = filechooser.showSaveDialog(this);
+        if (selected == JFileChooser.APPROVE_OPTION) {
+            File f = filechooser.getSelectedFile();
+            if (m_con.loadFile(bucketName, fileName, f)){
+                JOptionPane.showMessageDialog(this, "ダウンロードに成功しました", "ダウンロードに成功しました", JOptionPane.INFORMATION_MESSAGE);
+                showData();
+            } else {
+                JOptionPane.showMessageDialog(this, "ダウンロードに失敗しました", "ダウンロードに失敗しました", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_jButton3ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -105,14 +302,112 @@ public class GridFsFrame extends javax.swing.JFrame {
             }
         });
     }
+
+    /**
+     * メインツリーパネルの初期化
+     */
+    private synchronized void createBucketCollectionTree() {
+        try {
+            DefaultMutableTreeNode root = (DefaultMutableTreeNode) m_treeModel.getRoot();
+
+            for (String s : m_con.getBucketCollections()) {
+                //追加判定
+                boolean b = true;
+                for (int i = 0; i < root.getChildCount(); i++) {
+                    if (root.getChildAt(i).toString().equals(s)) {
+                        b = false;
+                        break;
+                    }
+                }
+                if (b) {
+                    DefaultMutableTreeNode collectionReef = new DefaultMutableTreeNode(s);
+                    root.add(collectionReef);
+                }
+            }
+
+            jTree1.updateUI();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "接続設定を確認してください \n[" + ex.toString() + "]", "接続に失敗しました", JOptionPane.ERROR_MESSAGE);
+            Logger.getLogger(GridFsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * リストをクリアします
+     */
+    private void clearList() {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.setRowCount(0);
+    }
+
+    /**
+     * 選択したコレクションのデータを表示する
+     */
+    private void showData() {
+        showData(getBucketCollectionName());
+    }
+
+    /**
+     * 指定したコレクションのデータを表示する
+     *
+     * @param bucketName
+     */
+    private synchronized void showData(String bucketName) {
+        try {
+            //データのクリア
+            clearList();
+
+            //検索条件の設定
+            Map<String, Object> query = new HashMap<String, Object>();
+            if (jTextField1.getText().length() > 0) {
+                query.put("filename", Pattern.compile(jTextField1.getText() + ".*"));
+            }
+
+            //データの取得
+            String[] datas = m_con.getBucketFiles(bucketName, query);
+            Map[] mapArray = new Map[datas.length];
+            for (int i = 0; i < datas.length; i++) {
+                mapArray[i] = (Map) JSON.parse(datas[i]);
+            }
+
+            //テーブルに設定
+            if (mapArray.length > 0) {
+                Object[] keys = mapArray[0].keySet().toArray();
+                DefaultTableModel model = new DefaultTableModel(null, keys);
+                jTable1.setModel(model);
+                for (Map m : mapArray) {
+                    Object[] lines = new Object[keys.length];
+                    for (int i = 0; i < lines.length; i++) {
+                        lines[i] = m.get(keys[i]);
+                    }
+                    model.addRow(lines);
+                }
+            }
+
+
+
+        } catch (Exception ex) {
+            Logger.getLogger(GridFsFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel11;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
-    private javax.swing.JTextPane jTextPane1;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
 }

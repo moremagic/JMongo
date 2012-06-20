@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package jp.personal.jmongo;
 
 import action.DBActionManager;
@@ -18,16 +17,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * DB接続単位でのコントローラクラス
- * 以下情報を一元管理します
+ * DB接続単位でのコントローラクラス 以下情報を一元管理します
  *
- * ・GUI【JInternalFrame】
- * ・DAO【DBConnection】
- * ・Action【DBActionManager】
+ * ・GUI【JInternalFrame】 ・DAO【DBConnection】 ・Action【DBActionManager】
  *
  * @author mitsu
  */
 public class DBConContoroller {
+
     private String m_confName = "";
     private MongoIFrame m_gui = null;//コレクション表示フレーム
     private GridFsFrame m_gui_fs = null;//GridFS表示フレーム
@@ -45,8 +42,8 @@ public class DBConContoroller {
      * @param dbpasswd
      * @throws UnknownHostException
      */
-    public DBConContoroller(String confName, String host, int port, String dbName, String dbuser, String dbpasswd) throws UnknownHostException{
-        m_dao = new DBConnection(host, port,dbName, dbuser, dbpasswd);
+    public DBConContoroller(String confName, String host, int port, String dbName, String dbuser, String dbpasswd) throws UnknownHostException {
+        m_dao = new DBConnection(host, port, dbName, dbuser, dbpasswd);
         m_confName = confName;
     }
 
@@ -55,12 +52,25 @@ public class DBConContoroller {
      *
      * @return
      */
-    public MongoIFrame getGUI(){
-        if(m_gui == null){
+    public MongoIFrame getGUI() {
+        if (m_gui == null) {
             m_gui = new MongoIFrame(this);
-            m_gui.setTitle(m_confName);
+            m_gui.setTitle("Collection Viewer [" + m_confName + "]");
         }
         return m_gui;
+    }
+
+    /**
+     * GridFS GUIを返却する
+     *
+     * @return
+     */
+    public GridFsFrame getGridFSGUI() {
+        if (m_gui_fs == null) {
+            m_gui_fs = new GridFsFrame(this);
+            m_gui_fs.setTitle("GridFS Viewer [" + m_confName + "]");
+        }
+        return m_gui_fs;
     }
 
     /**
@@ -68,8 +78,8 @@ public class DBConContoroller {
      *
      * @return
      */
-    public DBActionManager getActionMgr(){
-        if(m_act == null){
+    public DBActionManager getActionMgr() {
+        if (m_act == null) {
             m_act = new DBActionManager(this);
         }
         return m_act;
@@ -80,7 +90,7 @@ public class DBConContoroller {
      *
      * @return DB名
      */
-    public String getDBName(){
+    public String getDBName() {
         return m_dao.getDBName();
     }
 
@@ -90,8 +100,95 @@ public class DBConContoroller {
      * @return コレクション名
      * @throws UnknownHostException
      */
-    public String[] getCollections() throws UnknownHostException, MongoException{
+    public String[] getCollections() {
         return m_dao.getCollectionNames();
+    }
+
+    /**
+     * Bucketコレクション名を取得する
+     *
+     * @return Bucketコレクション名
+     * @throws UnknownHostException
+     */
+    public String[] getBucketCollections() {
+        return m_dao.getBucketList();
+    }
+
+    /**
+     * Bucketのファイルリストを表示する
+     *
+     * @return Bucketコレクション名
+     * @throws UnknownHostException
+     */
+    public String[] getBucketFiles(String bucketName) {
+        return getBucketFiles(bucketName, null);
+    }
+
+    /**
+     * Bucketのファイルリストを表示する
+     *
+     * @return Bucketコレクション名
+     * @throws UnknownHostException
+     */
+    public String[] getBucketFiles(String bucketName, Map query) {
+        return m_dao.listFile(bucketName, query);
+    }
+
+    /**
+     * 指定したバケットにファイルを保存する
+     *
+     * @param bucketName バケット名
+     * @param f 保存するファイル
+     * @return
+     */
+    public boolean saveFile(String bucketName, File f) {
+        return m_dao.saveFile(bucketName, f);
+    }
+
+    /**
+     * 指定したバケットのファイルを削除する
+     *
+     * @param bucketName バケット名
+     * @param f 保存するファイル
+     * @return
+     */
+    public void deleteFile(String bucketName, String fname) {
+        m_dao.deleteFile(bucketName, fname);
+    }
+
+    /**
+     * 指定したバケットのファイルを保存する
+     * 
+     * @param bucketName
+     * @param fname
+     * @param f 保存先ファイル名
+     * @return 
+     */
+    public boolean loadFile(String bucketName, String fname, File f) {
+        boolean ret = false;
+        if( !f.exists() ){
+            try {//ファイル出力
+                InputStream in = null;
+                OutputStream out = null;
+                try {
+                    in = new BufferedInputStream(m_dao.readFile(bucketName, fname));
+                    out = new BufferedOutputStream(new FileOutputStream(f));
+                    int cnt = 0;
+                    byte[] buf = new byte[1024];
+                    while ((cnt = in.read(buf, 0, buf.length)) != -1) {
+                        out.write(buf, 0, cnt);
+                    }
+                    ret = true;
+                } finally {
+                    if(in != null)in.close();
+                    if(out != null)out.close();
+                }
+            } catch (IOException err) {
+                err.printStackTrace();
+            }
+        }
+
+        return ret;
     }
 
     /**
@@ -100,64 +197,64 @@ public class DBConContoroller {
      * @return コレクション名
      * @throws UnknownHostException
      */
-    public List<Map<String, Object>> findCollection(String collection, Map query, int skip, int limit) throws UnknownHostException, MongoException{
+    public List<Map<String, Object>> findCollection(String collection, Map query, int skip, int limit) throws MongoException {
         return m_dao.selectRead(collection, null, query, skip, limit, null);
     }
-    
+
     /**
      * コレクションの全体サイズを取得する
-     * 
+     *
      * @param collection
-     * @return 
+     * @return
      */
-    public long getCollectionDataCount(String collection){
+    public long getCollectionDataCount(String collection) {
         return m_dao.count(collection, null);
     }
 
     /**
      * アップデートを行う
+     *
      * @return 成功したらTrue
      */
-    public boolean update(){
-        try{
+    public boolean update() {
+        try {
             String collection = m_gui.getCollectionName();
             String newData = m_gui.getEditData();
             String selectData = m_gui.getSelectedData();
-            if(selectData == null){
+            if (selectData == null) {
                 return insert(collection, newData);
-            }else{
+            } else {
                 Map<String, Object> find = new HashMap<String, Object>();
-                find.put("_id", ((Map)JSON.parse(selectData)).get("_id"));
+                find.put("_id", ((Map) JSON.parse(selectData)).get("_id"));
 
-                Map<String, Object> update =  (Map)JSON.parse(newData);
+                Map<String, Object> update = (Map) JSON.parse(newData);
                 m_dao.update(collection, find, update);
                 return true;
             }
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
     }
 
-
-    public boolean insert(String collection, String data){
-        try{
-            m_dao.insert(collection, (Map)JSON.parse(data));
+    public boolean insert(String collection, String data) {
+        try {
+            m_dao.insert(collection, (Map) JSON.parse(data));
             return true;
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
     }
 
-    public boolean delete(){
-        try{
+    public boolean delete() {
+        try {
             String collection = m_gui.getCollectionName();
             String newData = m_gui.getEditData();
 
-            m_dao.delete(collection, (Map)JSON.parse(newData));
+            m_dao.delete(collection, (Map) JSON.parse(newData));
             return true;
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
@@ -165,15 +262,15 @@ public class DBConContoroller {
 
     /**
      * 指定されたコレクションをドロップします
-     * 
-     * @return 
+     *
+     * @return
      */
-    public boolean drop(){
-        try{
+    public boolean drop() {
+        try {
             String collection = m_gui.getCollectionName();
             m_dao.drop(collection);
             return true;
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
@@ -181,68 +278,70 @@ public class DBConContoroller {
 
     /**
      * DBデータをファイルへダンプします
-     * 
+     *
      * @param f
-     * @return 
+     * @return
      */
-    public boolean dump(File f){
-        try{
+    public boolean dump(File f) {
+        try {
             BufferedWriter bw = null;
             String collection = m_gui.getCollectionName();
-            try{
+            try {
                 bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
-            
+
                 List<Map<String, Object>> list = m_dao.read(collection, null);
-                for(Map m : list){
+                for (Map m : list) {
                     bw.write(JSON.serialize(m) + "\r\n");
                 }
-            }finally{
-                if(bw != null)bw.close();
+            } finally {
+                if (bw != null) {
+                    bw.close();
+                }
             }
-            
+
             return true;
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
-    }    
-    
+    }
+
     /**
      * 指定したファイルからDBへデータをロードします
-     * 
+     *
      * @param f
-     * @return 
+     * @return
      */
-    public boolean load(File f){
-        try{
+    public boolean load(File f) {
+        try {
             BufferedReader br = null;
             String collection = m_gui.getCollectionName();
-            try{
+            try {
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"));
-            
+
                 String line = "";
-                while((line = br.readLine()) != null){
-                    Map<String, Object> m = (Map<String, Object>)JSON.parse(line);
+                while ((line = br.readLine()) != null) {
+                    Map<String, Object> m = (Map<String, Object>) JSON.parse(line);
                     m_dao.insert(collection, m);
                 }
-            }finally{
-                if(br != null)br.close();
+            } finally {
+                if (br != null) {
+                    br.close();
+                }
             }
-            
             return true;
-        }catch(Exception err){
+        } catch (Exception err) {
             err.printStackTrace();
             return false;
         }
-    }    
-    
-    
+    }
+
     /**
      * DBコントローラをクローズする
      *
      * ※メモリリーク対策
      */
-    public void close(){
+    public void close() {
         m_gui = null;
         m_dao = null;
         m_act = null;

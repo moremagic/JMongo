@@ -327,11 +327,11 @@ public class DBConnection {
      * @param backet
      * @return DB格納状態のファイルドキュメント。JSON形式
      */
-    public String[] listFile(String bucket){
+    public String[] listFile(String bucket, Map query){
         List<String> ret = new ArrayList<String>();
         
         GridFS gfs = new GridFS(m_MongoDB, bucket);        
-	DBCursor cursor = gfs.getFileList();
+	DBCursor cursor = gfs.getFileList(map2DBObject(query));
 	while (cursor.hasNext()) {
             ret.add(cursor.next().toString());
 	}
@@ -387,52 +387,6 @@ public class DBConnection {
     public void deleteFile(String bucket, String fileName){
         GridFS gfs = new GridFS(m_MongoDB, bucket);
         gfs.remove(fileName);
-    }
-    
-    public static void main(String[] argv){
-        System.out.println("ok");
-        
-        try {
-            DBConnection con = new DBConnection("localhost", -1, "unko");
-            String bucketName = "photooo";
-            String imgPath = "C:\\Users\\user\\Desktop\\img_457868_25319115_3.jpg";
-            File f = new File(imgPath);
-            
-            for(String s :con.listFile(bucketName)){
-                System.out.println(">  " + s);
-            }
-            
-            for(String ccc: con.getBucketList()){
-                System.out.println("c>  " + ccc);
-            }
-            
-            
-            
-            con.saveFile(bucketName, new File(imgPath));
-            
-            //con.deleteFile(bucketName, new File(imgPath).getName());
-//            
-//            {//ファイル出力
-//                InputStream in = new BufferedInputStream( con.readFile(bucketName, f.getName()) );
-//                OutputStream out = new BufferedOutputStream( new FileOutputStream(new File(f.getParent(), "test.jpeg")) );
-//                int cnt = 0;
-//                byte[] buf = new byte[1024];
-//                while((cnt = in.read(buf, 0, buf.length)) != -1){
-//                    out.write(buf, 0, cnt);
-//                }
-//                
-//                in.close();
-//                out.close();
-//            }
-            
-            for(String s :con.listFile(bucketName)){
-                System.out.println(">> " + s);
-            }
-            
-        } catch (Exception ex) {
-            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
     }
     
     /**

@@ -235,7 +235,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
      * @return コレクション名
      */
     public String getCollectionName(){
-        return jTree1.getSelectionPath().getPath()[jTree1.getSelectionCount()].toString();
+        return jTree1.getLastSelectedPathComponent().toString();
     }
 
     /**
@@ -457,7 +457,7 @@ public class MongoIFrame extends javax.swing.JInternalFrame {
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         JFileChooser filechooser = new JFileChooser();
 
-        int selected = filechooser.showOpenDialog(this);
+        int selected = filechooser.showSaveDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION){
             File file = filechooser.getSelectedFile();
             if(m_con.dump(file)){

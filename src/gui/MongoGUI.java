@@ -12,6 +12,7 @@
 package gui;
 
 import action.ActionManager;
+import action.GFSOpenAction;
 import action.OpenAction;
 import java.beans.PropertyVetoException;
 import javax.swing.Action;
@@ -30,8 +31,11 @@ public class MongoGUI extends javax.swing.JFrame {
 
 
         //Actionの設定
-        Action act = ActionManager.getInstance().getAction(OpenAction.class.getCanonicalName());
-        jMenu1.add(act);
+        Action act1 = ActionManager.getInstance().getAction(OpenAction.class.getCanonicalName());
+        Action act2 = ActionManager.getInstance().getAction(GFSOpenAction.class.getCanonicalName());
+        
+        jMenu1.add(act1);
+        jMenu1.add(act2);
     }
 
     /**

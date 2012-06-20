@@ -48,8 +48,13 @@ public class MainController {
         });
     }
 
+    
     public void showDBConect(DBConContoroller dbcon){
         m_AppFrame.addFrame(dbcon.getGUI());
+    }
+    
+    public void showGFSDBConect(DBConContoroller dbcon){
+        m_AppFrame.addFrame(dbcon.getGridFSGUI());
     }
 
     /**

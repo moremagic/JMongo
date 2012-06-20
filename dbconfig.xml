@@ -3,4 +3,5 @@
 <properties>
 <comment>mongoDB Connection Config</comment>
 <entry key="local">localhost:27017/unko@=</entry>
+<entry key="local2">localhost:27017/test@=</entry>
 </properties>
