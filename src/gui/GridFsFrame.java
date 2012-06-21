@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.basic.BasicFileChooserUI;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -203,15 +204,23 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         }
 
         JFileChooser filechooser = new JFileChooser();
+        filechooser.setMultiSelectionEnabled(true);
+        
         int selected = filechooser.showOpenDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION) {
-            File f = filechooser.getSelectedFile();
-            if (m_con.saveFile(bucketName, f)) {
-                JOptionPane.showMessageDialog(this, "保存に成功しました", "保存に成功しました", JOptionPane.INFORMATION_MESSAGE);
-                showData();
-            } else {
-                JOptionPane.showMessageDialog(this, "保存に失敗しました", "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
+            clearList();
+            File[] files = filechooser.getSelectedFiles();
+            for(final File f: files){
+                final boolean b = m_con.saveFile(bucketName, f);
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        if (!b) {
+                            JOptionPane.showMessageDialog(null, "[" + f.getName() + "]\r\n保存に失敗しました", "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                });
             }
+            showData();
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -221,16 +230,15 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
             return;
         }
 
-        String fileName = "";
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        for (int i = 0; i < model.getColumnCount(); i++) {
-            if ("filename".equals(model.getColumnName(i))) {
-                fileName = model.getValueAt(jTable1.getSelectedRow(), i).toString();
+        for (int i = 0; i < jTable1.getColumnCount(); i++) {
+            if ("filename".equals(jTable1.getColumnName(i))) {
+                for (int idx : jTable1.getSelectedRows()) {
+                    m_con.deleteFile(bucketName, jTable1.getValueAt(idx, i).toString());
+                }
+                showData();
                 break;
             }
         }
-        m_con.deleteFile(bucketName, fileName);
-        showData();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -240,15 +248,17 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         }
         
         String fileName = "";
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        for (int i = 0; i < model.getColumnCount(); i++) {
-            if ("filename".equals(model.getColumnName(i))) {
-                fileName = model.getValueAt(jTable1.getSelectedRow(), i).toString();
+        for (int i = 0; i < jTable1.getColumnCount(); i++) {
+            if ("filename".equals(jTable1.getColumnName(i))) {
+                fileName = jTable1.getValueAt(jTable1.getSelectedRow(), i).toString();
                 break;
             }
         }
         
         JFileChooser filechooser = new JFileChooser();
+        BasicFileChooserUI ui = (BasicFileChooserUI) filechooser.getUI();
+        ui.setFileName(fileName);         
+                
         int selected = filechooser.showSaveDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION) {
             File f = filechooser.getSelectedFile();
