@@ -4,17 +4,17 @@
  */
 package jmongo;
 
-import jmongo.action.DBActionManager;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
-import jmongo.dao.DBConnection;
-import jmongo.gui.GridFsFrame;
-import jmongo.gui.MongoCollectionFrame;
 import java.io.*;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import jmongo.action.DBActionManager;
+import jmongo.dao.DBConnection;
+import jmongo.gui.GridFsFrame;
+import jmongo.gui.MongoCollectionFrame;
 
 /**
  * DB接続単位でのコントローラクラス 以下情報を一元管理します
@@ -173,15 +173,15 @@ public class DBConContoroller {
      * @param f 保存先ファイル名
      * @return
      */
-    public boolean loadFile(String bucketName, String fname, File f) {
+    public boolean loadFile(String bucketName, String[] fnames, File fdir) {
         boolean ret = false;
-        if (!f.exists()) {
+        for(String f : fnames) {
             try {//ファイル出力
                 InputStream in = null;
                 OutputStream out = null;
                 try {
-                    in = new BufferedInputStream(m_dao.readFile(bucketName, fname));
-                    out = new BufferedOutputStream(new FileOutputStream(f));
+                    in = new BufferedInputStream(m_dao.readFile(bucketName, f));
+                    out = new BufferedOutputStream(new FileOutputStream(new File(fdir, f)));
                     int cnt = 0;
                     byte[] buf = new byte[1024];
                     while ((cnt = in.read(buf, 0, buf.length)) != -1) {
@@ -198,6 +198,8 @@ public class DBConContoroller {
                 }
             } catch (IOException err) {
                 err.printStackTrace();
+                ret = false;
+                break;
             }
         }
 
@@ -297,7 +299,8 @@ public class DBConContoroller {
      * @param f
      * @return
      */
-    public boolean dump(File fdir) {
+    public boolean dump(final File fdir) {
+        Boolean ret = false;
         try {
             BufferedWriter bw = null;
             for (String collection : m_gui.getCollectionNames()) {
@@ -314,11 +317,11 @@ public class DBConContoroller {
                     }
                 }
             }
-            return true;
+            ret = true;
         } catch (Exception err) {
             err.printStackTrace();
-            return false;
         }
+        return ret;
     }
 
     /**

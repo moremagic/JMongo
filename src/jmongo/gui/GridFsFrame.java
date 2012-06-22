@@ -6,18 +6,16 @@ package jmongo.gui;
 
 import com.mongodb.util.JSON;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.plaf.basic.BasicFileChooserUI;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -226,7 +224,7 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String bucketName = jTree1.getLastSelectedPathComponent().toString();
+        final String bucketName = jTree1.getLastSelectedPathComponent().toString();
         if (bucketName.equals(m_treeModel.getRoot().toString())) {
             return;
         }
@@ -237,18 +235,25 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         int selected = filechooser.showOpenDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION) {
             clearList();
-            File[] files = filechooser.getSelectedFiles();
-            for(final File f: files){
-                final boolean b = m_con.saveFile(bucketName, f);
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        if (!b) {
-                            JOptionPane.showMessageDialog(null, "[" + f.getName() + "]\r\n保存に失敗しました", "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
-                        }
+            final File[] files = filechooser.getSelectedFiles();
+            
+            final JComponent owner = this;
+            new Thread(new Runnable(){
+                public void run(){
+                    for(final File f: files){
+                        final boolean b = m_con.saveFile(bucketName, f);
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                if (!b) {
+                                    JOptionPane.showMessageDialog(owner, "[" + f.getName() + "]\r\n保存に失敗しました", "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
+                                }
+                            }
+                        });
                     }
-                });
-            }
-            showData();
+                    showData();
+                    JOptionPane.showMessageDialog(owner, "保存処理が終了しました", "保存処理が終了しました", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }).start();
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -270,32 +275,39 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        String bucketName = jTree1.getLastSelectedPathComponent().toString();
+        final String bucketName = jTree1.getLastSelectedPathComponent().toString();
         if (bucketName.equals(m_treeModel.getRoot().toString())) {
             return;
         }
         
-        String fileName = "";
+        final List<String> fileNames = new ArrayList<String>();
         for (int i = 0; i < jTable1.getColumnCount(); i++) {
             if ("filename".equals(jTable1.getColumnName(i))) {
-                fileName = jTable1.getValueAt(jTable1.getSelectedRow(), i).toString();
+                for (int idx : jTable1.getSelectedRows()) {
+                    fileNames.add(jTable1.getValueAt(idx, i).toString());
+                }
                 break;
             }
         }
         
         JFileChooser filechooser = new JFileChooser();
-        BasicFileChooserUI ui = (BasicFileChooserUI) filechooser.getUI();
-        ui.setFileName(fileName);         
-                
+        filechooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                        
         int selected = filechooser.showSaveDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION) {
-            File f = filechooser.getSelectedFile();
-            if (m_con.loadFile(bucketName, fileName, f)){
-                JOptionPane.showMessageDialog(this, "ダウンロードに成功しました", "ダウンロードに成功しました", JOptionPane.INFORMATION_MESSAGE);
-                showData();
-            } else {
-                JOptionPane.showMessageDialog(this, "ダウンロードに失敗しました", "ダウンロードに失敗しました", JOptionPane.ERROR_MESSAGE);
-            }
+            final File fdir = filechooser.getSelectedFile();
+            
+            final JComponent owner = this;
+            new Thread(new Runnable(){
+                public void run(){
+                    if (m_con.loadFile(bucketName, fileNames.toArray(new String[0]), fdir)){
+                        JOptionPane.showMessageDialog(owner, "ダウンロードに成功しました", "ダウンロードに成功しました", JOptionPane.INFORMATION_MESSAGE);
+                        showData();
+                    } else {
+                        JOptionPane.showMessageDialog(owner, "ダウンロードに失敗しました", "ダウンロードに失敗しました", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }).start();
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 

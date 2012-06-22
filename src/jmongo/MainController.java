@@ -5,13 +5,7 @@
 
 package jmongo;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.Mongo;
-import com.mongodb.MongoException;
-import jmongo.gui.MongoGUI;
+import com.mongodb.*;
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import jmongo.gui.MongoGUI;
 
 /**
  *

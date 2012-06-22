@@ -28,7 +28,8 @@ import javax.swing.tree.*;
 import jmongo.DBConContoroller;
 
 /**
- *
+ * コレクション データ表示用フレーム
+ * 
  * @author Administrator
  */
 public class MongoCollectionFrame extends javax.swing.JInternalFrame {
@@ -493,14 +494,20 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
 
         int selected = filechooser.showSaveDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION){
-            File file = filechooser.getSelectedFile();
-            if(m_con.dump(file)){
-                JOptionPane.showMessageDialog(this, "保存に成功しました",  "保存に成功しました", JOptionPane.INFORMATION_MESSAGE);
-                jTextArea1.setText("");
-                showData();
-            }else{
-                JOptionPane.showMessageDialog(this, "保存に失敗しました",  "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
-            }
+            final File file = filechooser.getSelectedFile();
+            
+            final JComponent owner = this;
+            new Thread(new Runnable(){
+                public void run(){
+                    if(m_con.dump(file)){
+                        JOptionPane.showMessageDialog(owner, "保存に成功しました",  "保存に成功しました", JOptionPane.INFORMATION_MESSAGE);
+                        jTextArea1.setText("");
+                        showData();
+                    }else{
+                        JOptionPane.showMessageDialog(owner, "保存に失敗しました",  "保存に失敗しました", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }).start();
         }
     }//GEN-LAST:event_jButton4ActionPerformed
 
@@ -510,27 +517,35 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
 
         int selected = filechooser.showOpenDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION){
-            File file = filechooser.getSelectedFile();
+            final File file = filechooser.getSelectedFile();
             
-            boolean b = false;
-            if(file.isDirectory()){
-                for(File f : file.listFiles()){
-                    b = m_con.load(f);
-                    if(!b)break;
+            final JComponent owner = this;
+            new Thread(new Runnable(){
+                public void run(){
+                    boolean b = false;
+                    if(file.isDirectory()){
+                        for(File f : file.listFiles()){
+                            b = m_con.load(f);
+                            if(!b)break;
+                        }
+                    }else{
+                        b = m_con.load(file);
+                    }
+
+                    //結果表示
+                    if(b){
+                        JOptionPane.showMessageDialog(owner, "取り込みに成功しました",  "取り込みに成功しました", JOptionPane.INFORMATION_MESSAGE);
+                        jTextArea1.setText("");
+                        showData();
+                        createCollectionTree();
+                    }else{
+                        JOptionPane.showMessageDialog(owner, "取り込みに失敗しました",  "取り込みに失敗しました", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
-            }else{
-                b = m_con.load(file);
-            }
+            }).start();            
             
-            //結果表示
-            if(b){
-                JOptionPane.showMessageDialog(this, "取り込みに成功しました",  "取り込みに成功しました", JOptionPane.INFORMATION_MESSAGE);
-                jTextArea1.setText("");
-                showData();
-                createCollectionTree();
-            }else{
-                JOptionPane.showMessageDialog(this, "取り込みに失敗しました",  "取り込みに失敗しました", JOptionPane.ERROR_MESSAGE);
-            }
+            
+            
         }
     }//GEN-LAST:event_jButton5ActionPerformed
 
