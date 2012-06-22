@@ -54,7 +54,7 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         renderer.setOpenIcon(openIcon);
         jTree1.setCellRenderer(renderer);
         
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(m_con.getDBName() + " bucket");
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(m_con.getDBName() + "[" + m_con.getHost() + "]");
         m_treeModel = new DefaultTreeModel(root);
         jTree1.setModel(m_treeModel);
         createBucketCollectionTree();

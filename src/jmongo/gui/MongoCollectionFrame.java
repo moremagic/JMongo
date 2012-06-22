@@ -15,10 +15,7 @@ import com.mongodb.util.JSON;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -27,10 +24,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
+import javax.swing.tree.*;
 import jmongo.DBConContoroller;
 
 /**
@@ -60,7 +54,7 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
         renderer.setOpenIcon(openIcon);
         jTree1.setCellRenderer(renderer);
         
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(m_con.getDBName());
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode(m_con.getDBName() + "[" + m_con.getHost() + "]");
         m_treeModel = new DefaultTreeModel(root);
         jTree1.setModel(m_treeModel);
         createCollectionTree();
@@ -74,7 +68,11 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
                     SwingUtilities.invokeLater(new Runnable(){
                         public void run(){
                             final String nodeName = jTree1.getLastSelectedPathComponent().toString();
-                            showData(nodeName);
+                            if (!nodeName.equals(m_treeModel.getRoot().toString())) {
+                                showData(nodeName);
+                            }else{
+                                createCollectionTree();
+                            }
                         }
                     });
                 }
@@ -111,20 +109,11 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
     private synchronized void createCollectionTree() {
         try {
             DefaultMutableTreeNode root = (DefaultMutableTreeNode)m_treeModel.getRoot();
-
+            root.removeAllChildren();
+            
             for (String s : m_con.getCollections()) {
-                //追加判定
-                boolean b = true;
-                for(int i = 0 ; i < root.getChildCount() ; i++){
-                    if( root.getChildAt(i).toString().equals(s) ){
-                        b = false;
-                        break;
-                    }
-                }
-                if( b ){
-                    DefaultMutableTreeNode collectionReef = new DefaultMutableTreeNode(s);
-                    root.add(collectionReef);
-                }
+                DefaultMutableTreeNode collectionReef = new DefaultMutableTreeNode(s);
+                root.add(collectionReef);
             }
 
             jTree1.updateUI();
@@ -147,7 +136,7 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
      * @param collectionName
      */
     private void showData(){
-        showData(getCollectionName());
+        showData(jTree1.getLastSelectedPathComponent().toString());
     }
 
     /**
@@ -172,12 +161,6 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
             
             List<Map<String, Object>> datas = m_con.findCollection(collectionName, query, (collectionListView1.getPages()-1) * collectionListView1.getCount(), collectionListView1.getCount());
             collectionListView1.setListDatas(datas);
-            
-            SwingUtilities.invokeLater(new Runnable(){
-                public void run(){
-                    createCollectionTree();
-                }
-            });
         } catch (Exception ex) {
             Logger.getLogger(MongoCollectionFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -203,9 +186,13 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
         root.add( (DefaultMutableTreeNode)createMongoDataTree("root", s) );
         jTree2.updateUI();
         expandAll(jTree2);
-    }
+    }    
 
-
+    /**
+     * 全てのノードを展開する
+     * 
+     * @param tree 
+     */
     private void expandAll(JTree tree) {
         int row = 0;
         while (row < tree.getRowCount()) {
@@ -244,8 +231,21 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
      * 現在選択されているコレクション名を取得する
      * @return コレクション名
      */
-    public String getCollectionName(){
-        return jTree1.getLastSelectedPathComponent().toString();
+    public String[] getCollectionNames(){
+        List<String> ret = new ArrayList<String>();
+        for(TreePath p: jTree1.getSelectionPaths()){
+            String nodeName = p.getLastPathComponent().toString();
+            if (!nodeName.equals(m_treeModel.getRoot().toString())) {
+                ret.add(nodeName);
+                
+System.out.println("> " + nodeName);
+            }
+        }
+        
+System.out.println();
+        
+        
+        return ret.toArray(new String[0]);
     }
 
     /**
@@ -458,10 +458,13 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        // TODO add your handling code here:
+        int ret = JOptionPane.showConfirmDialog(this, "このコレクションを本当にドロップしますか？", "最終確認",JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if(ret != JOptionPane.OK_OPTION)return;        
+        
         if( m_con.drop() ){
             jTextArea1.setText("");
             showData();
+            createCollectionTree();
         }else{
             JOptionPane.showMessageDialog(this, "削除に失敗しました",  "削除失敗しました", JOptionPane.ERROR_MESSAGE);
         }
@@ -470,6 +473,7 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         JFileChooser filechooser = new JFileChooser();
+        filechooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         int selected = filechooser.showSaveDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION){
@@ -486,14 +490,28 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
         JFileChooser filechooser = new JFileChooser();
+        filechooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 
         int selected = filechooser.showOpenDialog(this);
         if (selected == JFileChooser.APPROVE_OPTION){
             File file = filechooser.getSelectedFile();
-            if(m_con.load(file)){
+            
+            boolean b = false;
+            if(file.isDirectory()){
+                for(File f : file.listFiles()){
+                    b = m_con.load(f);
+                    if(!b)break;
+                }
+            }else{
+                b = m_con.load(file);
+            }
+            
+            //結果表示
+            if(b){
                 JOptionPane.showMessageDialog(this, "取り込みに成功しました",  "取り込みに成功しました", JOptionPane.INFORMATION_MESSAGE);
                 jTextArea1.setText("");
                 showData();
+                createCollectionTree();
             }else{
                 JOptionPane.showMessageDialog(this, "取り込みに失敗しました",  "取り込みに失敗しました", JOptionPane.ERROR_MESSAGE);
             }

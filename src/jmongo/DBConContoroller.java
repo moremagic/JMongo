@@ -95,6 +95,15 @@ public class DBConContoroller {
     }
 
     /**
+     * 接続ホスト情報の取得
+     *
+     * @return
+     */
+    public String getHost() {
+        return m_dao.getDBHost() + ":" + m_dao.getDBPort();
+    }
+
+    /**
      * コレクション名を取得する
      *
      * @return コレクション名
@@ -158,15 +167,15 @@ public class DBConContoroller {
 
     /**
      * 指定したバケットのファイルを保存する
-     * 
+     *
      * @param bucketName
      * @param fname
      * @param f 保存先ファイル名
-     * @return 
+     * @return
      */
     public boolean loadFile(String bucketName, String fname, File f) {
         boolean ret = false;
-        if( !f.exists() ){
+        if (!f.exists()) {
             try {//ファイル出力
                 InputStream in = null;
                 OutputStream out = null;
@@ -180,8 +189,12 @@ public class DBConContoroller {
                     }
                     ret = true;
                 } finally {
-                    if(in != null)in.close();
-                    if(out != null)out.close();
+                    if (in != null) {
+                        in.close();
+                    }
+                    if (out != null) {
+                        out.close();
+                    }
                 }
             } catch (IOException err) {
                 err.printStackTrace();
@@ -218,7 +231,7 @@ public class DBConContoroller {
      */
     public boolean update() {
         try {
-            String collection = m_gui.getCollectionName();
+            String collection = m_gui.getCollectionNames()[0];
             String newData = m_gui.getEditData();
             String selectData = m_gui.getSelectedData();
             if (selectData == null) {
@@ -249,7 +262,7 @@ public class DBConContoroller {
 
     public boolean delete() {
         try {
-            String collection = m_gui.getCollectionName();
+            String collection = m_gui.getCollectionNames()[0];
             String newData = m_gui.getEditData();
 
             m_dao.delete(collection, (Map) JSON.parse(newData));
@@ -266,14 +279,16 @@ public class DBConContoroller {
      * @return
      */
     public boolean drop() {
+        boolean ret = false;
         try {
-            String collection = m_gui.getCollectionName();
-            m_dao.drop(collection);
-            return true;
+            for (String collection : m_gui.getCollectionNames()) {
+                m_dao.drop(collection);
+            }
+            ret = true;
         } catch (Exception err) {
             err.printStackTrace();
-            return false;
         }
+        return ret;
     }
 
     /**
@@ -282,23 +297,23 @@ public class DBConContoroller {
      * @param f
      * @return
      */
-    public boolean dump(File f) {
+    public boolean dump(File fdir) {
         try {
             BufferedWriter bw = null;
-            String collection = m_gui.getCollectionName();
-            try {
-                bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
+            for (String collection : m_gui.getCollectionNames()) {
+                try {
+                    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File(fdir, collection)), "UTF-8"));
 
-                List<Map<String, Object>> list = m_dao.read(collection, null);
-                for (Map m : list) {
-                    bw.write(JSON.serialize(m) + "\r\n");
-                }
-            } finally {
-                if (bw != null) {
-                    bw.close();
+                    List<Map<String, Object>> list = m_dao.read(collection, null);
+                    for (Map m : list) {
+                        bw.write(JSON.serialize(m) + "\r\n");
+                    }
+                } finally {
+                    if (bw != null) {
+                        bw.close();
+                    }
                 }
             }
-
             return true;
         } catch (Exception err) {
             err.printStackTrace();
@@ -315,14 +330,13 @@ public class DBConContoroller {
     public boolean load(File f) {
         try {
             BufferedReader br = null;
-            String collection = m_gui.getCollectionName();
             try {
                 br = new BufferedReader(new InputStreamReader(new FileInputStream(f), "UTF-8"));
 
                 String line = "";
                 while ((line = br.readLine()) != null) {
                     Map<String, Object> m = (Map<String, Object>) JSON.parse(line);
-                    m_dao.insert(collection, m);
+                    m_dao.insert(f.getName(), m);
                 }
             } finally {
                 if (br != null) {
