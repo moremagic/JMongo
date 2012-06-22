@@ -101,6 +101,8 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
+        jPanel5 = new javax.swing.JPanel();
+        jButton4 = new javax.swing.JButton();
         jPanel3 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -128,6 +130,18 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         jScrollPane1.setViewportView(jTree1);
 
         jPanel2.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+
+        jPanel5.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
+        jButton4.setText("bucket add");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+        jPanel5.add(jButton4);
+
+        jPanel2.add(jPanel5, java.awt.BorderLayout.PAGE_END);
 
         jSplitPane1.setLeftComponent(jPanel2);
 
@@ -285,6 +299,13 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
         }
     }//GEN-LAST:event_jButton3ActionPerformed
 
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        String bucketName = JOptionPane.showInputDialog(this, "add backet name.");
+        m_con.getBucketFiles(bucketName);
+        
+        createBucketCollectionTree();
+    }//GEN-LAST:event_jButton4ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -333,20 +354,11 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
     private synchronized void createBucketCollectionTree() {
         try {
             DefaultMutableTreeNode root = (DefaultMutableTreeNode) m_treeModel.getRoot();
+            root.removeAllChildren();
 
             for (String s : m_con.getBucketCollections()) {
-                //追加判定
-                boolean b = true;
-                for (int i = 0; i < root.getChildCount(); i++) {
-                    if (root.getChildAt(i).toString().equals(s)) {
-                        b = false;
-                        break;
-                    }
-                }
-                if (b) {
-                    DefaultMutableTreeNode collectionReef = new DefaultMutableTreeNode(s);
-                    root.add(collectionReef);
-                }
+                DefaultMutableTreeNode collectionReef = new DefaultMutableTreeNode(s);
+                root.add(collectionReef);
             }
 
             jTree1.updateUI();
@@ -408,8 +420,6 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
                 }
             }
 
-
-
         } catch (Exception ex) {
             Logger.getLogger(GridFsFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -418,6 +428,7 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
@@ -426,6 +437,7 @@ public class GridFsFrame extends javax.swing.JInternalFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
