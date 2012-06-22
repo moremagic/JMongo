@@ -237,14 +237,8 @@ public class MongoCollectionFrame extends javax.swing.JInternalFrame {
             String nodeName = p.getLastPathComponent().toString();
             if (!nodeName.equals(m_treeModel.getRoot().toString())) {
                 ret.add(nodeName);
-                
-System.out.println("> " + nodeName);
             }
         }
-        
-System.out.println();
-        
-        
         return ret.toArray(new String[0]);
     }
 
