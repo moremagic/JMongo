@@ -18,6 +18,7 @@ import javax.swing.JInternalFrame;
 import jmongo.action.ActionManager;
 import jmongo.action.CollectionOpenAction;
 import jmongo.action.GFSOpenAction;
+import jmongo.action.ThanksDlgOpenAction;
 
 /**
  *
@@ -37,9 +38,11 @@ public class MongoGUI extends javax.swing.JFrame {
         //Actionの設定
         Action act1 = ActionManager.getInstance().getAction(CollectionOpenAction.class.getCanonicalName());
         Action act2 = ActionManager.getInstance().getAction(GFSOpenAction.class.getCanonicalName());
+        Action act3 = ActionManager.getInstance().getAction(ThanksDlgOpenAction.class.getCanonicalName());
         
         jMenu1.add(act1);
         jMenu1.add(act2);
+        jMenu2.add(act3);
     }
 
     /**
@@ -83,7 +86,7 @@ public class MongoGUI extends javax.swing.JFrame {
         jMenu1.setText("File");
         jMenuBar1.add(jMenu1);
 
-        jMenu2.setText("Edit");
+        jMenu2.setText("help");
         jMenuBar1.add(jMenu2);
 
         setJMenuBar(jMenuBar1);

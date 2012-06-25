@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import jmongo.gui.MongoGUI;
+import jmongo.gui.ThanksDlg;
 
 /**
  *
@@ -52,6 +53,12 @@ public class MainController {
         m_AppFrame.addFrame(dbcon.getGridFSGUI());
     }
 
+    
+    public void showThanksDlg(){
+        new ThanksDlg(m_AppFrame).setVisible(true);
+    }
+    
+    
     /**
      * @param args the command line arguments
      */
