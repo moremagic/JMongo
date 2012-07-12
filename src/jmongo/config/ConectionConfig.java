@@ -5,6 +5,7 @@
 
 package jmongo.config;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,7 +25,9 @@ public class ConectionConfig {
     public ConectionConfig() {
         try {
             m_properties = new Properties();
-            m_properties.loadFromXML(new FileInputStream(_CONFIG_FILE));
+            
+            File f = new File(System.getProperty("user.home") + "/jmongo", _CONFIG_FILE);
+            m_properties.loadFromXML(new FileInputStream(f));
         } catch (IOException ex) {
             Logger.getLogger(ConectionConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -92,7 +95,12 @@ public class ConectionConfig {
         boolean ret = false;
         try{
             if(m_properties != null){
-                m_properties.storeToXML(new FileOutputStream(_CONFIG_FILE), "mongoDB Connection Config", "UTF-8");
+                File f = new File(System.getProperty("user.home") + "/jmongo", _CONFIG_FILE);
+                if(!f.getParentFile().exists()){
+                    f.getParentFile().mkdirs();
+                }
+                
+                m_properties.storeToXML(new FileOutputStream(f), "mongoDB Connection Config", "UTF-8");
                 ret = true;
             }
         }catch(IOException err){

@@ -82,7 +82,6 @@ public class ThanksDlg extends javax.swing.JDialog{
         jPanel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(15, 15, 15, 15));
         jPanel2.setLayout(new java.awt.BorderLayout());
 
-        backImagePane1.setOpaque(false);
         backImagePane1.setLayout(new java.awt.BorderLayout());
 
         jPanel5.setOpaque(false);
@@ -100,7 +99,7 @@ public class ThanksDlg extends javax.swing.JDialog{
         scrollPane1.setLayout(scrollPane1Layout);
         scrollPane1Layout.setHorizontalGroup(
             scrollPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 421, Short.MAX_VALUE)
+            .addGap(0, 491, Short.MAX_VALUE)
         );
         scrollPane1Layout.setVerticalGroup(
             scrollPane1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -124,7 +123,7 @@ public class ThanksDlg extends javax.swing.JDialog{
         getContentPane().add(jPanel3, java.awt.BorderLayout.SOUTH);
 
         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds((screenSize.width-633)/2, (screenSize.height-327)/2, 633, 327);
+        setBounds((screenSize.width-703)/2, (screenSize.height-327)/2, 703, 327);
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed

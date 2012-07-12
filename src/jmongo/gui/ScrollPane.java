@@ -52,7 +52,7 @@ public class ScrollPane extends javax.swing.JPanel {
         super.paintComponent(g);
         
         String[] strArrays = m_value.split("\n");
-        Graphics2D g2 = (Graphics2D)g;
+        Graphics2D g2 = (Graphics2D)g.create();
         g2.setTransform(AffineTransform.getTranslateInstance(0, -(cnt * 1)));
         for(int i = 0 ; i < strArrays.length ; i++){
             g2.drawString(strArrays[i],  20, g2.getFontMetrics().getHeight() * i);
