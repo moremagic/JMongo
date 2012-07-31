@@ -91,7 +91,8 @@ public class MongoGUI extends javax.swing.JFrame {
 
         setJMenuBar(jMenuBar1);
 
-        pack();
+        java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        setBounds((screenSize.width-575)/2, (screenSize.height-468)/2, 575, 468);
     }// </editor-fold>//GEN-END:initComponents
 
     /**
